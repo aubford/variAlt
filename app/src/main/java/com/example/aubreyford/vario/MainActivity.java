@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mGaugeView = (GaugeView) findViewById(R.id.gauge_view);
-        mGaugeView.setTargetValue(50);
+        mGaugeView.setTargetValue(-1000);
     }
 
 
