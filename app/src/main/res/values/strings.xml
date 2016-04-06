@@ -1,3 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Vario</string>
+    
+    <!-- location -->
+    <string name="locationSectionHeading">Location Services</string>
+    <string name="launchGetCurrentLocationActivityButtonText">Get Current Location</string>
+    <string name="latitudeLabel">Latitude:</string>
+    <string name="longitudeLabel">Longitude:</string>
+    <string name="providerLabel">Provider:</string>
+    <string name="accuracyLabel">Accuracy:</string>
+    <string name="timeToFixLabel">Time to Fix:</string>
+    <string name="secondsUnit">second(s)</string>
+    <string name="metersUnit">meters(s)</string>
+    <string name="enabledProvidersLabel">Enabled Providers:</string>
+    <string name="changeLocationProviderSettingsText">Change Location Provider Settings</string>
+    <string name="launchTrackLocationActivityButtonText">Track Location</string>
+    <string name="launchProximityAlertActivityButtonText">Add Proximity Alert</string>    
+	<string name="startTrackingButtonText">Start Tracking</string>
+    <string name="stopTrackingButtonText">Stop Tracking</string>
+	<string name="setProximityAlert">Set Proximity\nAlert</string>
+    <string name="clearProximityAlert">Clear Proximity\nAlert</string>
+    <string name="selectProximityAlertTypeLabel">Select Proximity Alert Type</string>
+    <string name="androidProximityAlertTypeLabel">Android</string>
+    <string name="customProximityAlertTypeLabel">Custom</string>
+    <string name="locationLabel">Location:</string>
+    <string name="none">None</string>
+    <string name="setLocation">Set Location</string>
+    <string name="enterLocationLabel">Enter Location:</string>
+    <string name="lookupLocationButton">Lookup Location</string>
+    <string name="radiusLabel">Enter Radius (m):</string>
+    <string name="geocodeErrorTitle">Geocoding Error</string>
+    <string name="geocodeErrorMessage">Geocoding of location failed. Try re-submitting location.</string>
+    
+    <!-- Sensors -->
+    <string name="gravitySensorLabel">Gravity Sensor</string>
+    <string name="accelerometerMagnetometerLabel">Accelerometer &amp; Magnetometer</string>
+    <string name="gravityMagnetometerLabel">Gravity Sensor &amp; Magnetometer</string>
+    <string name="rotationVectorLabel">Rotation Vector</string>
+    <string name="selectedSensorLabel">Selected Sensor:</string>
+    <string name="faceUpText">Face Up</string>
+    <string name="faceDownText">Face Down</string>
+    <string name="orientationLabel">Orientation:</string>
+    <string name="azimuthLabel">Azimuth (Z Axis):</string>
+    <string name="pitchLabel">Pitch (X Axis):</string>
+    <string name="rollLabel">Roll (Y Axis):</string>
+    <string name="xAxisLabel">X Axis:</string>
+    <string name="yAxisLabel">Y Axis:</string>
+    <string name="zAxisLabel">Z Axis:</string>
+    <string name="proximityLabel">Proximity (cm):</string>
+    <string name="speakOrientationLabel">Speak Orientation</string>
+    <string name="speakMovementDetectedLabel">Speak Movement Detected</string>
+    <string name="ttsNotificationsOn">TTS Notifications On</string>
+    <string name="ttsNotificationsOff">TTS Notifications Off</string>
+    <string name="rotationMatrixGenFailureMessage">Failed to generate rotation matrix</string>
+    <string name="accelerometerLabel">Accelerometer</string>
+    <string name="linearAccelerationSensorLabel">Linear Acceleration Sensor</string>
+    <string name="startReadingAccelerationData">Start Reading Acceleration Data</string>
+    <string name="readingAccelerationData">Reading Acceleration Data</string>
+    <string name="enableHighPassFilterLabel">Enable High-Pass Filter</string>
+    <string name="selectSensorSectionHeading">Select Sensor</string>
+    <string name="optionsSectionHeading">Options</string>
+    <string name="movementDetectedText">Movement Detected</string>
+    <string name="gpsAltitudeLabel">GPS Altitude</string>
+    <string name="barometerAltitudeLabel">Barometer Altitude (Standard Pressure)</string>
+    <string name="mslpBarometerAltitudeLabel">Barometer Altitude (MSLP)</string>
+    <string name="altitudeLabel">Altitude (m):</string>
+    <string name="relativeAltitudeLabel">Relative Altitude (m):</string>
+    <string name="mslpLabel">MSLP (milibar):</string>
+    <string name="standardPressureLabel">Standard Pressure (milibar):</string>
+    <string name="webServiceConnectionFailureMessage">Could not read pressure from web service</string>
+    <string name="gpsNotEnabledMessage">Warning: GPS is not enabled</string>
+    <string name="notAvailable">N/A</string>
+
+    
 </resources>
