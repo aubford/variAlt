@@ -4,12 +4,10 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 import java.util.Scanner;
 
 import org.json.JSONObject;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -17,13 +15,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -31,17 +27,25 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationListener;
+
 import io.sule.gaugelibrary.GaugeView;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SensorEventListener, LocationListener {
     private static final String TAG = "AltitudeActivity";
     private static final int TIMEOUT = 500; // waaaas 1 second
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
 
     // System services
     private SensorManager sensorManager;
-    private LocationManager locationManager;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
 
     // UI Views
     private TextView gpsAltitudeView;
@@ -64,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean webServiceFetching;
     private long lastErrorMessageTimestamp = -1;
 
-
     private GaugeView mGaugeView;
 
 
@@ -79,7 +82,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mGaugeView.setTargetValue(100);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
 
         gpsAltitudeView = (TextView) findViewById(R.id.gpsAltitude);
         gpsRelativeAltitude = (TextView) findViewById(R.id.gpsRelativeAltitude);
@@ -89,48 +97,73 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mslpBarometerRelativeAltitude = (TextView) findViewById(R.id.mslpBarometerRelativeAltitude);
         mslpView = (TextView) findViewById(R.id.mslp);
 
-
-
         webServiceFetching = false;
-
-        TextView standardPressure = (TextView) findViewById(R.id.standardPressure);
-        String standardPressureString =
-                String.valueOf(SensorManager.PRESSURE_STANDARD_ATMOSPHERE);
-        standardPressure.setText(standardPressureString);
     }
+
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(1000);
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {return;}
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location)
+    {
+
+        if (lastGpsAltitudeTimestamp == -1 || location.getTime() - lastGpsAltitudeTimestamp > TIMEOUT)
+        {
+            double altitude = location.getAltitude();
+            gpsAltitudeView.setText(String.valueOf(altitude));
+            lastGpsAltitudeTimestamp = location.getTime();
+            currentGpsAltitude = altitude;
+        }
+
+        float accuracy = location.getAccuracy();
+        boolean betterAccuracy = accuracy < bestLocationAccuracy;
+        if (mslp == null  || (bestLocationAccuracy > -1 && betterAccuracy))
+        {
+            bestLocationAccuracy = accuracy;
+
+            if (!webServiceFetching)
+            {
+                webServiceFetching = true;
+                new MetarAsyncTask().execute(location.getLatitude(),
+                        location.getLongitude());
+            }
+        }
+    }
+
+
+    ////////////////////////////////////////////BAROMETER///////////////////////////////////////
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        List<String> enabledProviders = locationManager.getProviders(true);
-
-        Log.i("***enabledProviders***", String.valueOf(enabledProviders));
-
-        if (enabledProviders.isEmpty() || !enabledProviders.contains(LocationManager.GPS_PROVIDER)) {
-            Toast.makeText(this, "GPS Not Enabled", Toast.LENGTH_LONG).show();
-        } else {
-            // Register every location provider returned from LocationManager
-            for (String provider : enabledProviders) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    Toast.makeText(this, "Please grant location permission!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                // Register for updates every minute
-                locationManager.requestLocationUpdates(provider,
-                        60000,  // minimum time of 60000 ms (1 minute)
-                        0,      // Minimum distance of 0
-                        this);
-            }
-        }
-
 
         Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
@@ -148,21 +181,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         sensorManager.unregisterListener(this);
 
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Toast.makeText(this, "Please grant location permission!", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        locationManager.removeUpdates(this);
     }
 
     @Override
@@ -196,99 +214,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     {
         // no-op
     }
-
-    @Override
-    public void onLocationChanged(Location location)
-    {
-        Log.i("***A***", String.valueOf(LocationManager.GPS_PROVIDER.equals(location.getProvider())));
-//        Log.i("***B***", String.valueOf(lastGpsAltitudeTimestamp));
-//        Log.i("***C***", String.valueOf(location.getTime()));
-        Log.i("***D***", String.valueOf(location.getProvider()));
-
-        if (LocationManager.GPS_PROVIDER.equals(location.getProvider()) && (lastGpsAltitudeTimestamp == -1 || location.getTime() - lastGpsAltitudeTimestamp > TIMEOUT))
-        {
-            double altitude = location.getAltitude();
-            gpsAltitudeView.setText(String.valueOf(altitude));
-            lastGpsAltitudeTimestamp = location.getTime();
-            currentGpsAltitude = altitude;
-        }
-
-        float accuracy = location.getAccuracy();
-        boolean betterAccuracy = accuracy < bestLocationAccuracy;
-        if (mslp == null  || (bestLocationAccuracy > -1 && betterAccuracy))
-        {
-            bestLocationAccuracy = accuracy;
-
-            if (!webServiceFetching)
-            {
-                webServiceFetching = true;
-                new MetarAsyncTask().execute(location.getLatitude(),
-                        location.getLongitude());
-            }
-        }
-    }
-
-    @Override
-    public void onProviderDisabled(String provider)
-    {
-        Log.i("***disabled***", provider);
-    }
-
-    @Override
-    public void onProviderEnabled(String provider)
-    {
-        Log.i("***enabled***", provider);
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras)
-    {
-        // no-op
-    }
-
-    public void onToggleClick(View view)
-    {
-        if (((ToggleButton)view).isChecked())
-        {
-            lastGpsAltitude = currentGpsAltitude;
-            lastBarometerValue = currentBarometerValue;
-            gpsRelativeAltitude.setVisibility(View.INVISIBLE);
-            barometerRelativeAltitude.setVisibility(View.INVISIBLE);
-
-            if (mslp != null)
-            {
-                mslpBarometerRelativeAltitude.setVisibility(View.INVISIBLE);
-            }
-        }
-        else
-        {
-            double delta;
-
-            delta = currentGpsAltitude - lastGpsAltitude;
-            gpsRelativeAltitude.setText(String.valueOf(delta));
-            gpsRelativeAltitude.setVisibility(View.VISIBLE);
-
-            delta = SensorManager
-                    .getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
-                        currentBarometerValue)
-                - SensorManager
-                    .getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
-                        lastBarometerValue);
-
-            barometerRelativeAltitude.setText(String.valueOf(delta));
-            barometerRelativeAltitude.setVisibility(View.VISIBLE);
-
-            if (mslp != null)
-            {
-                delta = SensorManager.getAltitude(mslp, currentBarometerValue)
-                        - SensorManager.getAltitude(mslp, lastBarometerValue);
-                mslpBarometerRelativeAltitude.setText(String.valueOf(delta));
-                mslpBarometerRelativeAltitude.setVisibility(View.VISIBLE);
-            }
-        }
-    }
-
-
 
     private class MetarAsyncTask extends AsyncTask<Number, Void, Float>
     {
@@ -403,6 +328,49 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
             MainActivity.this.webServiceFetching = false;
+        }
+    }
+
+
+    public void onToggleClick(View view)
+    {
+        if (((ToggleButton)view).isChecked())
+        {
+            lastGpsAltitude = currentGpsAltitude;
+            lastBarometerValue = currentBarometerValue;
+            gpsRelativeAltitude.setVisibility(View.INVISIBLE);
+            barometerRelativeAltitude.setVisibility(View.INVISIBLE);
+
+            if (mslp != null)
+            {
+                mslpBarometerRelativeAltitude.setVisibility(View.INVISIBLE);
+            }
+        }
+        else
+        {
+            double delta;
+
+            delta = currentGpsAltitude - lastGpsAltitude;
+            gpsRelativeAltitude.setText(String.valueOf(delta));
+            gpsRelativeAltitude.setVisibility(View.VISIBLE);
+
+            delta = SensorManager
+                    .getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
+                            currentBarometerValue)
+                    - SensorManager
+                    .getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
+                            lastBarometerValue);
+
+            barometerRelativeAltitude.setText(String.valueOf(delta));
+            barometerRelativeAltitude.setVisibility(View.VISIBLE);
+
+            if (mslp != null)
+            {
+                delta = SensorManager.getAltitude(mslp, currentBarometerValue)
+                        - SensorManager.getAltitude(mslp, lastBarometerValue);
+                mslpBarometerRelativeAltitude.setText(String.valueOf(delta));
+                mslpBarometerRelativeAltitude.setVisibility(View.VISIBLE);
+            }
         }
     }
 }
