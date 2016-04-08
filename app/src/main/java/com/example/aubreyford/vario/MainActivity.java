@@ -137,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         if (lastGpsAltitudeTimestamp == -1 || location.getTime() - lastGpsAltitudeTimestamp > TIMEOUT)
         {
+            Log.i("*****", String.valueOf(location.getAltitude()));
             double altitude = location.getAltitude();
             gpsAltitudeView.setText(String.valueOf(altitude));
             lastGpsAltitudeTimestamp = location.getTime();
