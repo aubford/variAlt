@@ -89,8 +89,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mslpBarometerRelativeAltitude = (TextView) findViewById(R.id.mslpBarometerRelativeAltitude);
         mslpView = (TextView) findViewById(R.id.mslp);
 
-
-
         webServiceFetching = false;
 
         TextView standardPressure = (TextView) findViewById(R.id.standardPressure);
@@ -105,14 +103,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         List<String> enabledProviders = locationManager.getProviders(true);
 
-        Log.i("***enabledProviders***", String.valueOf(enabledProviders));
-
-        if (enabledProviders.isEmpty() || !enabledProviders.contains(LocationManager.GPS_PROVIDER)) {
+        if (!enabledProviders.contains(LocationManager.GPS_PROVIDER)) {
             Toast.makeText(this, "GPS Not Enabled", Toast.LENGTH_LONG).show();
+        } else if (!enabledProviders.contains(LocationManager.NETWORK_PROVIDER)) {
+            Toast.makeText(this, "Please change location mode to High Accuracy", Toast.LENGTH_LONG).show();
         } else {
             // Register every location provider returned from LocationManager
             for (String provider : enabledProviders) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     // TODO: Consider calling
                     //    ActivityCompat#requestPermissions
                     // here to request the missing permissions, and then overriding
@@ -125,12 +125,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 // Register for updates every minute
                 locationManager.requestLocationUpdates(provider,
-                        60000,  // minimum time of 60000 ms (1 minute)
+                        2,  // minimum time of 60000 ms (1 minute)
                         0,      // Minimum distance of 0
                         this);
             }
         }
-
 
         Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
@@ -200,10 +199,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onLocationChanged(Location location)
     {
-        Log.i("***A***", String.valueOf(LocationManager.GPS_PROVIDER.equals(location.getProvider())));
-//        Log.i("***B***", String.valueOf(lastGpsAltitudeTimestamp));
-//        Log.i("***C***", String.valueOf(location.getTime()));
-        Log.i("***D***", String.valueOf(location.getProvider()));
+        Log.i("***D***", String.valueOf(location));
 
         if (LocationManager.GPS_PROVIDER.equals(location.getProvider()) && (lastGpsAltitudeTimestamp == -1 || location.getTime() - lastGpsAltitudeTimestamp > TIMEOUT))
         {
