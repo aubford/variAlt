@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -36,7 +37,7 @@ import io.sule.gaugelibrary.GaugeView;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
     private static final String TAG = "AltitudeActivity";
-    private static final int TIMEOUT = 500; // waaaas 1 second
+    private static final int TIMEOUT = 300; // waaaas 1 second
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
 
     // System services
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private double currentGpsAltitude;
     private boolean webServiceFetching;
     private long lastErrorMessageTimestamp = -1;
+    private VarioData mVarioData = new VarioData();
 
 
     private GaugeView mGaugeView;
@@ -168,13 +170,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event)
     {
         float altitude;
+
         currentBarometerValue = event.values[0];
 
         double currentTimestamp = event.timestamp / NS_TO_MS_CONVERSION;
         double elapsedTime = currentTimestamp - lastBarometerAltitudeTimestamp;
         if (lastBarometerAltitudeTimestamp == -1 || elapsedTime > TIMEOUT)
         {
-
             if (mslp != null)
             {
                 altitude = SensorManager.getAltitude(mslp, currentBarometerValue);
@@ -185,9 +187,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 altitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, currentBarometerValue);
                 barometerAltitudeView.setText(String.valueOf(altitude));
             }
-
             lastBarometerAltitudeTimestamp = (long)currentTimestamp;
+            AltitudeEntry newEntry = new AltitudeEntry(altitude, currentTimestamp);
+            mVarioData.addEntry(newEntry);
         }
+
     }
 
     @Override
