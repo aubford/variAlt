@@ -43,41 +43,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="barometerRelativeAltitude"
-        android:id="@+id/barometerRelativeAltitude"
+        android:text="barometerAltitude"
+        android:id="@+id/relativeAltitude"
         />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="mslpBarometerAltitude"
-        android:id="@+id/mslpBarometerAltitude"
+        android:text="barometerAltitude"
+        android:id="@+id/flightTime"
         />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="mslpBarometerRelativeAltitude"
-        android:id="@+id/mslpBarometerRelativeAltitude"
-        />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="mslp"
-        android:id="@+id/mslp"
-        />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="standardPressure"
-        android:id="@+id/standardPressure"
-        />
 
 
 

@@ -24,7 +24,7 @@ import android.widget.ToggleButton;
 import io.sule.gaugelibrary.GaugeView;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private static final String TAG = "AltitudeActivity";
     private static final int TIMEOUT = 200; // waaaas 1 second
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
@@ -37,15 +37,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView barometerAltitudeView;
     private TextView barometerRelativeAltitude;
 
-
     // Member state
     private long lastBarometerAltitudeTimestamp = -1;
     private float bestLocationAccuracy = -1;
     private float currentBarometerValue;
-    private float lastBarometerValue;
-    private boolean webServiceFetching;
-    private Float mslp;
 
+    private Float mslp;
     private VarioData mVarioData = new VarioData();
     private GaugeView mGaugeView;
     private float lastMpS = 0;
@@ -62,13 +59,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-
         barometerAltitudeView = (TextView) findViewById(R.id.barometerAltitude);
         barometerRelativeAltitude = (TextView) findViewById(R.id.barometerRelativeAltitude);
-
-
-        webServiceFetching = false;
-
     }
 
     @Override
@@ -96,10 +88,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Toast.makeText(this, "Please grant location permission!", Toast.LENGTH_LONG).show();
                     return;
                 }
-                locationManager.requestLocationUpdates(provider,
-                        6000,  // minimum time of 60000 ms (1 minute)
-                        0,      // Minimum distance of 0
-                        this);
             }
         }
 
@@ -119,9 +107,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         sensorManager.unregisterListener(this);
 
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -133,7 +119,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return;
         }
 
-        locationManager.removeUpdates(this);
     }
 
     @Override
@@ -169,47 +154,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
             lastMpS = MpS;
-        }
 
+        }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy)
-    {
-        // no-op
-    }
-
-    @Override
-    public void onLocationChanged(Location location)
-    {
-
-
-
-        float accuracy = location.getAccuracy();
-        boolean betterAccuracy = accuracy < bestLocationAccuracy;
-        if (mslp == null  || (bestLocationAccuracy > -1 && betterAccuracy))
-        {
-            bestLocationAccuracy = accuracy;
-
-
-
-        }
-    }
-
-    @Override
-    public void onProviderDisabled(String provider)
-    {
-        Log.i("***disabled***", provider);
-    }
-
-    @Override
-    public void onProviderEnabled(String provider)
-    {
-        Log.i("***enabled***", provider);
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras)
     {
         // no-op
     }
