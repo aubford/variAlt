@@ -1,14 +1,6 @@
 package com.example.aubreyford.vario;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-
-import org.json.JSONObject;
 
 import android.Manifest;
 import android.content.Context;
@@ -20,10 +12,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -37,7 +26,7 @@ import io.sule.gaugelibrary.GaugeView;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
     private static final String TAG = "AltitudeActivity";
-    private static final int TIMEOUT = 300; // waaaas 1 second
+    private static final int TIMEOUT = 200; // waaaas 1 second
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
 
     // System services
@@ -47,21 +36,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // UI Views
     private TextView barometerAltitudeView;
     private TextView barometerRelativeAltitude;
-    private TextView mslpBarometerAltitudeView;
-    private TextView mslpBarometerRelativeAltitude;
-    private TextView mslpView;
+
 
     // Member state
-    private Float mslp;
     private long lastBarometerAltitudeTimestamp = -1;
     private float bestLocationAccuracy = -1;
     private float currentBarometerValue;
     private float lastBarometerValue;
     private boolean webServiceFetching;
-    private long lastErrorMessageTimestamp = -1;
+    private Float mslp;
+
     private VarioData mVarioData = new VarioData();
-
-
     private GaugeView mGaugeView;
     private float lastMpS = 0;
 
@@ -80,16 +65,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         barometerAltitudeView = (TextView) findViewById(R.id.barometerAltitude);
         barometerRelativeAltitude = (TextView) findViewById(R.id.barometerRelativeAltitude);
-        mslpBarometerAltitudeView = (TextView) findViewById(R.id.mslpBarometerAltitude);
-        mslpBarometerRelativeAltitude = (TextView) findViewById(R.id.mslpBarometerRelativeAltitude);
-        mslpView = (TextView) findViewById(R.id.mslp);
+
 
         webServiceFetching = false;
 
-        TextView standardPressure = (TextView) findViewById(R.id.standardPressure);
-        String standardPressureString =
-                String.valueOf(SensorManager.PRESSURE_STANDARD_ATMOSPHERE);
-        standardPressure.setText(standardPressureString);
     }
 
     @Override
@@ -103,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } else if (!enabledProviders.contains(LocationManager.NETWORK_PROVIDER)) {
             Toast.makeText(this, "Please change location mode to High Accuracy", Toast.LENGTH_LONG).show();
         } else {
-            // Register every location provider returned from LocationManager
             for (String provider : enabledProviders) {
 
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -118,9 +96,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Toast.makeText(this, "Please grant location permission!", Toast.LENGTH_LONG).show();
                     return;
                 }
-                // Register for updates every minute
                 locationManager.requestLocationUpdates(provider,
-                        2,  // minimum time of 60000 ms (1 minute)
+                        6000,  // minimum time of 60000 ms (1 minute)
                         0,      // Minimum distance of 0
                         this);
             }
@@ -173,8 +150,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (mslp != null)
             {
                 altitude = SensorManager.getAltitude(mslp, currentBarometerValue);
-                mslpBarometerAltitudeView.setText(String.valueOf(altitude));
-                mslpView.setText(String.valueOf(mslp));
                 barometerAltitudeView.setText(String.valueOf(altitude));
             }else{
                 altitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, currentBarometerValue);
@@ -216,12 +191,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         {
             bestLocationAccuracy = accuracy;
 
-            if (!webServiceFetching)
-            {
-                webServiceFetching = true;
-                new MetarAsyncTask().execute(location.getLatitude(),
-                        location.getLongitude());
-            }
+
+
         }
     }
 
@@ -243,160 +214,4 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // no-op
     }
 
-    public void onToggleClick(View view)
-    {
-        if (((ToggleButton)view).isChecked())
-        {
-
-            lastBarometerValue = currentBarometerValue;
-            barometerRelativeAltitude.setVisibility(View.INVISIBLE);
-
-            if (mslp != null)
-            {
-                mslpBarometerRelativeAltitude.setVisibility(View.INVISIBLE);
-            }
-        }
-        else
-        {
-            double delta;
-
-
-
-            delta = SensorManager
-                    .getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
-                        currentBarometerValue)
-                - SensorManager
-                    .getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
-                        lastBarometerValue);
-
-            barometerRelativeAltitude.setText(String.valueOf(delta));
-            barometerRelativeAltitude.setVisibility(View.VISIBLE);
-
-            if (mslp != null)
-            {
-                delta = SensorManager.getAltitude(mslp, currentBarometerValue)
-                        - SensorManager.getAltitude(mslp, lastBarometerValue);
-                mslpBarometerRelativeAltitude.setText(String.valueOf(delta));
-                mslpBarometerRelativeAltitude.setVisibility(View.VISIBLE);
-            }
-        }
-    }
-
-
-
-    private class MetarAsyncTask extends AsyncTask<Number, Void, Float>
-    {
-        private static final String WS_URL =
-                "http://ws.geonames.org/findNearByWeatherJSON";
-        private static final String SLP_STRING = "slp";
-
-        @Override
-        protected Float doInBackground(Number... params)
-        {
-            Float mslp = null;
-            HttpURLConnection urlConnection = null;
-
-            try
-            {
-                // Generate URL with parameters for web service
-                Uri uri =
-                        Uri.parse(WS_URL)
-                        .buildUpon()
-                        .appendQueryParameter("lat", String.valueOf(params[0]))
-                        .appendQueryParameter("lng", String.valueOf(params[1]))
-                        .appendQueryParameter("username", "aubford")
-                        .build();
-
-                // Connect to web service
-                URL url = new URL(uri.toString());
-                urlConnection = (HttpURLConnection) url.openConnection();
-
-                // Read web service response and convert to a string
-                InputStream inputStream =
-                        new BufferedInputStream(urlConnection.getInputStream());
-
-                // Convert InputStream to String using a Scanner
-                Scanner inputStreamScanner =
-                        new Scanner(inputStream).useDelimiter("\\A");
-                String response = inputStreamScanner.next();
-                inputStreamScanner.close();
-
-                Log.d(TAG, "Web Service Response -> " + response);
-
-                JSONObject json = new JSONObject(response);
-
-                String observation =
-                        json
-                            .getJSONObject("weatherObservation")
-                            .getString("observation");
-
-                // Split on whitespace
-                String[] values = observation.split("\\s");
-
-                // Iterate of METAR string until SLP string is found
-                String slpString = null;
-                for (int i = 1; i < values.length; i++)
-                {
-                    String value = values[i];
-
-                    if (value.startsWith(SLP_STRING.toLowerCase())
-                            || value.startsWith(SLP_STRING.toUpperCase()))
-                    {
-                        slpString =
-                                value.substring(SLP_STRING.length());
-                        break;
-                    }
-                }
-
-                // Decode SLP string into numerical representation
-                StringBuffer sb = new StringBuffer(slpString);
-
-                sb.insert(sb.length() - 1, ".");
-
-                float val1 = Float.parseFloat("10" + sb);
-                float val2 = Float.parseFloat("09" + sb);
-
-                mslp =
-                        (Math.abs((1000 - val1)) < Math.abs((1000 - val2)))
-                            ? val1
-                            : val2;
-            }
-            catch (Exception e)
-            {
-                Log.e(TAG, "Can't com w/ websrvc", e);
-            }
-            finally
-            {
-                if (urlConnection != null)
-                {
-                    urlConnection.disconnect();
-                }
-            }
-
-            return mslp;
-        }
-
-        @Override
-        protected void onPostExecute(Float result)
-        {
-            long uptime = SystemClock.uptimeMillis();
-
-            if (result == null
-                    && (lastErrorMessageTimestamp == -1
-                        || ((uptime - lastErrorMessageTimestamp) > 30000)))
-            {
-                Toast.makeText(MainActivity.this,
-                        "No sea level data available at this location.",
-                        Toast.LENGTH_LONG).show();
-
-                lastErrorMessageTimestamp = uptime;
-            }
-            else
-            {
-                MainActivity.this.mslp = result;
-            }
-
-            MainActivity.this.webServiceFetching = false;
-        }
-    }
 }
