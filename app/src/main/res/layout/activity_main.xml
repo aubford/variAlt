@@ -30,13 +30,20 @@
     gauge:showNeedle="true" />
 
 
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="barometerAltitude"
-        android:id="@+id/barometerAltitude"
+        android:id="@+id/main_barometerAltitude"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="relativeAltitude"
+        android:id="@+id/main_relativeAltitude"
         />
 
     <TextView
@@ -44,26 +51,15 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="barometerAltitude"
-        android:id="@+id/relativeAltitude"
+        android:id="@+id/main_flightTime"
         />
 
-    <TextView
-        android:layout_width="match_parent"
+    <Button
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="barometerAltitude"
-        android:id="@+id/flightTime"
+        android:text="End Flight"
+        android:id="@+id/main_endFlight"
         />
-
-
-
-
-
-
-
-
-
-
 
 
 </LinearLayout>

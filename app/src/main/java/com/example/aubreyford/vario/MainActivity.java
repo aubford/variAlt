@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -28,24 +29,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final String TAG = "AltitudeActivity";
     private static final int TIMEOUT = 200; // waaaas 1 second
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
-
     // System services
     private SensorManager sensorManager;
     private LocationManager locationManager;
-
     // UI Views
     private TextView barometerAltitudeView;
-    private TextView barometerRelativeAltitude;
-
+    private TextView relativeAltitude;
+    private TextView flightTime;
+    private Button endFlight;
     // Member state
     private long lastBarometerAltitudeTimestamp = -1;
     private float bestLocationAccuracy = -1;
     private float currentBarometerValue;
-
+    // Me
     private Float mslp;
     private VarioData mVarioData = new VarioData();
     private GaugeView mGaugeView;
     private float lastMpS = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,39 +58,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mGaugeView = (GaugeView) findViewById(R.id.gauge_view);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-        barometerAltitudeView = (TextView) findViewById(R.id.barometerAltitude);
-        barometerRelativeAltitude = (TextView) findViewById(R.id.barometerRelativeAltitude);
+        barometerAltitudeView = (TextView) findViewById(R.id.main_barometerAltitude);
+        relativeAltitude = (TextView) findViewById(R.id.main_relativeAltitude);
+        flightTime = (TextView) findViewById(R.id.main_flightTime);
+        endFlight = (Button) findViewById(R.id.main_endFlight);
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        List<String> enabledProviders = locationManager.getProviders(true);
 
-        if (!enabledProviders.contains(LocationManager.GPS_PROVIDER)) {
-            Toast.makeText(this, "GPS Not Enabled", Toast.LENGTH_LONG).show();
-        } else if (!enabledProviders.contains(LocationManager.NETWORK_PROVIDER)) {
-            Toast.makeText(this, "Please change location mode to High Accuracy", Toast.LENGTH_LONG).show();
-        } else {
-            for (String provider : enabledProviders) {
-
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    Toast.makeText(this, "Please grant location permission!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
-        }
 
         Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 

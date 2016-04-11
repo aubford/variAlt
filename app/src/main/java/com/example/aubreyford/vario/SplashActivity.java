@@ -1,8 +1,13 @@
 package com.example.aubreyford.vario;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.SystemClock;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,9 +23,11 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.Scanner;
 
-public class SplashActivity extends AppCompatActivity {
+
+public class SplashActivity extends AppCompatActivity implements LocationListener {
 
     private Float mslp;
     private ImageButton startFlight;
@@ -42,8 +49,8 @@ public class SplashActivity extends AppCompatActivity {
         myFlights = (Button) findViewById(R.id.spl_myFlights);
 
         setListeners();
-    }
 
+    }
 
 
     private void setListeners(){
@@ -52,14 +59,35 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                List<String> enabledProviders = locationManager.getProviders(true);
+
+                if (!enabledProviders.contains(LocationManager.GPS_PROVIDER)) {
+                    Toast.makeText(this, "GPS Not Enabled", Toast.LENGTH_LONG).show();
+                } else if (!enabledProviders.contains(LocationManager.NETWORK_PROVIDER)) {
+                    Toast.makeText(this, "Please change location mode to High Accuracy", Toast.LENGTH_LONG).show();
+                } else {
+                    for (String provider : enabledProviders) {
+
+                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            Toast.makeText(this, "Please grant location permission!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    }
+                }
                 ////get the location
 
-                new MetarAsyncTask().execute(location.getLatitude(), location.getLongitude());
+//                new MetarAsyncTask().execute(location.getLatitude(), location.getLongitude());
             }
         });
     }
-
-
 
 
     private class MetarAsyncTask extends AsyncTask<Number, Void, Float> {
