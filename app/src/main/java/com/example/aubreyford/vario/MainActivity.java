@@ -45,8 +45,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private LocationManager locationManager;
 
     // UI Views
-    private TextView gpsAltitudeView;
-    private TextView gpsRelativeAltitude;
     private TextView barometerAltitudeView;
     private TextView barometerRelativeAltitude;
     private TextView mslpBarometerAltitudeView;
@@ -55,20 +53,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // Member state
     private Float mslp;
-    private long lastGpsAltitudeTimestamp = -1;
     private long lastBarometerAltitudeTimestamp = -1;
     private float bestLocationAccuracy = -1;
     private float currentBarometerValue;
     private float lastBarometerValue;
-    private double lastGpsAltitude;
-    private double currentGpsAltitude;
     private boolean webServiceFetching;
     private long lastErrorMessageTimestamp = -1;
     private VarioData mVarioData = new VarioData();
 
 
     private GaugeView mGaugeView;
-
+    private float lastMpS = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,13 +73,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         mGaugeView = (GaugeView) findViewById(R.id.gauge_view);
-        mGaugeView.setTargetValue(100);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-        gpsAltitudeView = (TextView) findViewById(R.id.gpsAltitude);
-        gpsRelativeAltitude = (TextView) findViewById(R.id.gpsRelativeAltitude);
+
         barometerAltitudeView = (TextView) findViewById(R.id.barometerAltitude);
         barometerRelativeAltitude = (TextView) findViewById(R.id.barometerRelativeAltitude);
         mslpBarometerAltitudeView = (TextView) findViewById(R.id.mslpBarometerAltitude);
@@ -187,9 +180,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 altitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, currentBarometerValue);
                 barometerAltitudeView.setText(String.valueOf(altitude));
             }
+
             lastBarometerAltitudeTimestamp = (long)currentTimestamp;
             AltitudeEntry newEntry = new AltitudeEntry(altitude, currentTimestamp);
+
+
             mVarioData.addEntry(newEntry);
+            float MpS = mVarioData.getCurrentMpS();
+            mGaugeView.setTargetValue(MpS);
+
+            if( MpS > 0 && lastMpS > 0){
+                //play sound
+            }
+
+            lastMpS = MpS;
         }
 
     }
@@ -203,15 +207,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onLocationChanged(Location location)
     {
-        Log.i("***D***", String.valueOf(location));
 
-        if (LocationManager.GPS_PROVIDER.equals(location.getProvider()) && (lastGpsAltitudeTimestamp == -1 || location.getTime() - lastGpsAltitudeTimestamp > TIMEOUT))
-        {
-            double altitude = location.getAltitude();
-            gpsAltitudeView.setText(String.valueOf(altitude));
-            lastGpsAltitudeTimestamp = location.getTime();
-            currentGpsAltitude = altitude;
-        }
+
 
         float accuracy = location.getAccuracy();
         boolean betterAccuracy = accuracy < bestLocationAccuracy;
@@ -250,9 +247,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     {
         if (((ToggleButton)view).isChecked())
         {
-            lastGpsAltitude = currentGpsAltitude;
+
             lastBarometerValue = currentBarometerValue;
-            gpsRelativeAltitude.setVisibility(View.INVISIBLE);
             barometerRelativeAltitude.setVisibility(View.INVISIBLE);
 
             if (mslp != null)
@@ -264,9 +260,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         {
             double delta;
 
-            delta = currentGpsAltitude - lastGpsAltitude;
-            gpsRelativeAltitude.setText(String.valueOf(delta));
-            gpsRelativeAltitude.setVisibility(View.VISIBLE);
+
 
             delta = SensorManager
                     .getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE,

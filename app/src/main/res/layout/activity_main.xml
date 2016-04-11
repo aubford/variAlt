@@ -25,26 +25,11 @@
     gauge:showInnerRim="false"
     gauge:needleWidth="0.010"
     gauge:needleHeight="0.40"
-    gauge:scaleStartValue="-1000"
-    gauge:scaleEndValue="1000"
+    gauge:scaleStartValue="-10"
+    gauge:scaleEndValue="10"
     gauge:showNeedle="true" />
 
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="gpsAltitude"
-        android:id="@+id/gpsAltitude"
-        />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="gpsRelativeAltitude"
-        android:id="@+id/gpsRelativeAltitude"
-        />
 
     <TextView
         android:layout_width="match_parent"

@@ -1,9 +1,14 @@
 package com.example.aubreyford.vario;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class VarioData {
     ArrayList<AltitudeEntry> varioData;
+    double[] lastAltPoint = {0.0, 0.0};
+    double lastMpS = 0;
+
 
 
     public VarioData(){
@@ -18,31 +23,52 @@ public class VarioData {
         varioData.add(entry);
     }
 
-    public double getCurrentMpS(){
+    public float getCurrentMpS(){
 
-        if(varioData.size() < 3) {
-
+        if(varioData.size() < 6) {
             return 0;
-
         }else{
 
-            double lastThreeSum = 0;
-            double lastThreeTimeSum = 0;
-            double lastTwoTimeDifference = varioData.get(varioData.size()-1).timestamp - varioData.get(varioData.size()-2).timestamp;
+            if(lastAltPoint[1] == 0.0){
+                lastAltPoint[0] = varioData.get(varioData.size()-2).altitude;
+                lastAltPoint[1] = varioData.get(varioData.size()-2).timestamp / 1000.0;
+            }
 
-            for(int i = varioData.size() - 3 ; i < varioData.size() ; i++ ){
+            double[] currentPoint = {0.0, varioData.get(varioData.size()-1).timestamp / 1000.0};
+
+            double sum = 0.0;
+            double netTime = (varioData.get(varioData.size()-1).timestamp - varioData.get(varioData.size()-6).timestamp) / 1000.0;
+
+            for(int i = varioData.size() - 5 ; i < varioData.size() ; i++ ){
 
                 AltitudeEntry current = varioData.get(i);
                 AltitudeEntry prev = varioData.get(i-1);
 
-                double timeDifference = current.timestamp - prev.timestamp;
+                double timeDifference = (current.timestamp - prev.timestamp) / 1000.0;
+
                 double altitudeReading = current.altitude;
+                Log.i("****READING***", String.valueOf(altitudeReading));
 
-                lastThreeSum += timeDifference * altitudeReading;
-                lastThreeTimeSum += timeDifference;
 
+                sum += (timeDifference * altitudeReading);
             }
-            return (lastThreeSum/lastThreeTimeSum) / lastTwoTimeDifference;
+
+            currentPoint[0] = sum / netTime;
+            Log.i("****currentPoint****", String.valueOf(currentPoint[0]));
+            Log.i("****currentPoint****", String.valueOf(currentPoint[1]));
+            Log.i("****lastAltPoint****", String.valueOf(lastAltPoint[0]));
+            Log.i("****lastAltPoint****", String.valueOf(lastAltPoint[1]));
+
+
+            double newMpS = (currentPoint[0] - lastAltPoint[0]) / (currentPoint[1] - (lastAltPoint[1]) );
+
+            double MpS = (newMpS+lastMpS)/3;
+
+            lastAltPoint = currentPoint;
+            lastMpS = newMpS;
+
+
+            return (float)MpS;
         }
     }
 
