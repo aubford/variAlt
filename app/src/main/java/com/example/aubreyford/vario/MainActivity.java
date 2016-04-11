@@ -1,7 +1,5 @@
 package com.example.aubreyford.vario;
 
-import java.util.List;
-
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -9,19 +7,14 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
+
 import io.sule.gaugelibrary.GaugeView;
 
 
@@ -31,7 +24,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
     // System services
     private SensorManager sensorManager;
-    private LocationManager locationManager;
     // UI Views
     private TextView barometerAltitudeView;
     private TextView relativeAltitude;
@@ -69,8 +61,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-
-
 
         Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 

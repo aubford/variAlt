@@ -7,8 +7,6 @@ import java.util.ArrayList;
 public class VarioData {
     ArrayList<AltitudeEntry> varioData;
     double[] lastAltPoint = {0.0, 0.0};
-    double lastMpS = 0;
-
 
 
     public VarioData(){
@@ -54,28 +52,17 @@ public class VarioData {
             }
 
             currentPoint[0] = sum / netTime;
-            Log.i("****currentPoint****", String.valueOf(currentPoint[0]));
-            Log.i("****currentPoint****", String.valueOf(currentPoint[1]));
-            Log.i("****lastAltPoint****", String.valueOf(lastAltPoint[0]));
-            Log.i("****lastAltPoint****", String.valueOf(lastAltPoint[1]));
+//            Log.i("****currentPoint****", String.valueOf(currentPoint[0]));
+//            Log.i("****currentPoint****", String.valueOf(currentPoint[1]));
+//            Log.i("****lastAltPoint****", String.valueOf(lastAltPoint[0]));
+//            Log.i("****lastAltPoint****", String.valueOf(lastAltPoint[1]));
 
-
-            double newMpS = (currentPoint[0] - lastAltPoint[0]) / (currentPoint[1] - (lastAltPoint[1]) );
-
-            double MpS = (newMpS+lastMpS)/3;
-
-            lastAltPoint = currentPoint;
-            lastMpS = newMpS;
-
+            double MpS = (currentPoint[0] - lastAltPoint[0]) / (currentPoint[1] - lastAltPoint[1]);
+            Log.i("******MPS:", String.valueOf(MpS));
 
             return (float)MpS;
         }
     }
-
-
-
-
-
 
 
 
