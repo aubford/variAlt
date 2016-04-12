@@ -20,7 +20,7 @@ import io.sule.gaugelibrary.GaugeView;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private static final String TAG = "AltitudeActivity";
-    private static final int TIMEOUT = 200; // waaaas 1 second
+    private static final int TIMEOUT = 350; // waaaas 1 second
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
     // System services
     private SensorManager sensorManager;
