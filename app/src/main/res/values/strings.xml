@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">Vario</string>
     <string name="landing_zone_altitude">Landing Zone Altitude: </string>
+
 </resources>

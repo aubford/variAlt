@@ -74,7 +74,7 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
         myFlights = (Button) findViewById(R.id.spl_myFlights);
         mLanding = (TextView) findViewById(R.id.spl_landing);
 
-        mslp = (float) 0;
+        mslp = SensorManager.PRESSURE_STANDARD_ATMOSPHERE;
         landingZoneAltitude = 0;
 
 
@@ -142,7 +142,6 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
 
                 builder.show();
 
-////////////////////
             }
         });
 
@@ -166,16 +165,10 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if (mslp != null)
-        {
             landingZoneAltitude = SensorManager.getAltitude(mslp, event.values[0]);
             String newLandingText = landingString + " " + String.format("%.2f", landingZoneAltitude) + "m";
             mLanding.setText(newLandingText);
-        }else{
-            landingZoneAltitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, event.values[0]);
-            String newLandingText = landingString + " " + String.format("%.2f", landingZoneAltitude) + "m";
-            mLanding.setText(newLandingText);
-        }
+
         sensorManager.unregisterListener(this);
     }
 
