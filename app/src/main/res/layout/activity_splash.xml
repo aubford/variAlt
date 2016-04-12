@@ -18,14 +18,15 @@
 
         <ImageButton
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="250dp"
             android:id="@+id/spl_startFlight"
             android:src="@drawable/button2"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:background="#00FFFFFF"
             android:adjustViewBounds="false"
-            android:layout_gravity="center_horizontal|top" />
+            android:layout_gravity="center_horizontal|top"
+            android:scaleType="centerInside" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -34,43 +35,46 @@
             android:text="Start Flight"
             android:id="@+id/textView"
             android:layout_gravity="center"
-            android:textSize="45dp" />
+            android:textSize="35dp" />
 
     </FrameLayout>
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="75dp"
+        android:layout_width="170dp"
+        android:layout_height="100dp"
         android:text="Enter Landing Alt."
         android:id="@+id/spl_enterLanding"
-        android:layout_marginTop="22dp"
-        android:layout_below="@+id/frameLayout"
+        android:layout_below="@+id/spl_landing"
         android:layout_alignParentStart="true" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="75dp"
+        android:layout_width="170dp"
+        android:layout_height="100dp"
         android:text="Auto Landing Alt."
         android:id="@+id/spl_autoLanding"
         android:layout_alignBottom="@+id/spl_enterLanding"
-        android:layout_alignEnd="@+id/frameLayout" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="75dp"
-        android:text="Calibrate Altitude"
-        android:id="@+id/spl_calibrateAltitude"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="75dp"
-        android:text="My Flights"
-        android:layout_alignTop="@+id/spl_calibrateAltitude"
         android:layout_alignEnd="@+id/frameLayout"
-        android:layout_alignStart="@+id/spl_autoLanding"
-        android:id="@+id/spl_myFlights" />
+        android:layout_alignTop="@+id/spl_enterLanding" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="130dp"
+        android:text="My Flights"
+        android:id="@+id/spl_myFlights"
+        android:layout_below="@+id/spl_enterLanding"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Landing Zone Altitude: 0 m"
+        android:id="@+id/spl_landing"
+        android:paddingBottom="10dp"
+        android:layout_below="@+id/frameLayout"
+        android:layout_centerHorizontal="true"
+        android:paddingTop="15dp" />
 
 
 </RelativeLayout>

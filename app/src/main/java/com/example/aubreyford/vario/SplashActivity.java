@@ -2,18 +2,33 @@ package com.example.aubreyford.vario;
 
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.text.InputFilter;
+import android.text.InputType;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -28,32 +43,40 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
-public class SplashActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class SplashActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SensorEventListener {
 
-    private Float mslp;
-    private double landingZone;
     private ImageButton startFlight;
     private Button enterLanding;
     private Button autoLanding;
-    private Button calibrateAltitude;
     private Button myFlights;
+    private TextView mLanding;
+
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+    private SensorManager sensorManager;
 
+
+    private float landingZoneAltitude;
+    private Float mslp;
+    private String landingString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_splash);
+        landingString = getResources().getString(R.string.landing_zone_altitude);
 
         startFlight = (ImageButton) findViewById(R.id.spl_startFlight);
         enterLanding = (Button) findViewById(R.id.spl_enterLanding);
         autoLanding = (Button) findViewById(R.id.spl_autoLanding);
-        calibrateAltitude = (Button) findViewById(R.id.spl_calibrateAltitude);
         myFlights = (Button) findViewById(R.id.spl_myFlights);
-        mslp = (float) 0;
+        mLanding = (TextView) findViewById(R.id.spl_landing);
 
-        setListeners();
+        mslp = (float) 0;
+        landingZoneAltitude = 0;
+
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -63,12 +86,103 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     .build();
         }
 
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        setListeners();
     }
 
 
     private void setListeners() {
 
 
+
+        startFlight.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(SplashActivity.this, MainActivity.class);
+                i.putExtra("mslp", mslp);
+                i.putExtra("landingZoneAltitude", landingZoneAltitude);
+                startActivity(i);
+            }
+        });
+
+
+
+        enterLanding.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(SplashActivity.this);
+                builder.setTitle("Enter Altitude in Meters");
+
+                final EditText input = new EditText(SplashActivity.this);
+
+                input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                input.setRawInputType(Configuration.KEYBOARD_QWERTY);
+                input.setGravity(Gravity.CENTER_HORIZONTAL);
+                input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)});
+                builder.setView(input);
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String m_Text = input.getText().toString();
+                        landingZoneAltitude = Float.valueOf(m_Text);
+                        String newLandingText = landingString + " " + String.format("%.2f", landingZoneAltitude) + "m";
+                        mLanding.setText(newLandingText);
+
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
+
+////////////////////
+            }
+        });
+
+
+        autoLanding.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+                // Only make registration call if device has a pressure sensor
+                if (sensor != null) {
+                    sensorManager.registerListener(SplashActivity.this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
+                } else {
+                    Toast.makeText(SplashActivity.this, "You do not have a pressure sensor!", Toast.LENGTH_LONG).show();
+                }
+
+            }
+        });
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+
+        if (mslp != null)
+        {
+            landingZoneAltitude = SensorManager.getAltitude(mslp, event.values[0]);
+            String newLandingText = landingString + " " + String.format("%.2f", landingZoneAltitude) + "m";
+            mLanding.setText(newLandingText);
+        }else{
+            landingZoneAltitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, event.values[0]);
+            String newLandingText = landingString + " " + String.format("%.2f", landingZoneAltitude) + "m";
+            mLanding.setText(newLandingText);
+        }
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Sensor mBarometer = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
     }
 
     @Override
@@ -87,27 +201,21 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     public void onConnected(Bundle bundle) {
 
-        calibrateAltitude.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        if (ActivityCompat.checkSelfPermission(SplashActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(SplashActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
 
-                if (ActivityCompat.checkSelfPermission(SplashActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(SplashActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return;
-                }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
-                new MetarAsyncTask().execute(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            }
-        });
+        new MetarAsyncTask().execute(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 
     }
 
@@ -118,6 +226,12 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
 
@@ -199,10 +313,9 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         protected void onPostExecute(Float result)
         {
             if (result == null) {
-
-                Toast.makeText(SplashActivity.this, "No sea level data available at this location.", Toast.LENGTH_LONG).show();
+                Toast.makeText(SplashActivity.this, "No weather station data available at this location.  Absolute altitude data will be less accurate.", Toast.LENGTH_LONG).show();
             }else{
-                calibrateAltitude.setText(String.valueOf(result));
+                Toast.makeText(SplashActivity.this, "Calibration Successful.", Toast.LENGTH_LONG).show();
                 mslp = result;
             }
         }

@@ -1,15 +1,14 @@
 package com.example.aubreyford.vario;
 
-import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
@@ -18,8 +17,7 @@ import android.widget.Toast;
 import io.sule.gaugelibrary.GaugeView;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
-    private static final String TAG = "AltitudeActivity";
+public class MainActivity extends Activity implements SensorEventListener {
     private static final int TIMEOUT = 350; // waaaas 1 second
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
     // System services
@@ -31,18 +29,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Button endFlight;
     // Member state
     private long lastBarometerAltitudeTimestamp = -1;
-    private float bestLocationAccuracy = -1;
     private float currentBarometerValue;
     // Me
     private Float mslp;
     private VarioData mVarioData = new VarioData();
     private GaugeView mGaugeView;
     private float lastMpS = 0;
+    private float landingZoneAltitude;
+    private boolean beep = false;
+    private int playBeep = 0;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -55,6 +56,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         relativeAltitude = (TextView) findViewById(R.id.main_relativeAltitude);
         flightTime = (TextView) findViewById(R.id.main_flightTime);
         endFlight = (Button) findViewById(R.id.main_endFlight);
+
+        Bundle bundle = getIntent().getExtras();
+
+        mslp = bundle.getFloat("mslp");
+        landingZoneAltitude = bundle.getFloat("landingZoneAltitude");
+
+        Toast.makeText(MainActivity.this, String.valueOf(landingZoneAltitude), Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, String.valueOf(mslp), Toast.LENGTH_SHORT).show();
 
     }
 
@@ -70,6 +79,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }else{
             Toast.makeText(this, "You do not have a pressure sensor!", Toast.LENGTH_LONG).show();
         }
+
+
+        while(beep){
+            Toast.makeText(MainActivity.this, "Thermal", Toast.LENGTH_SHORT).show();
+        }
+
+
     }
 
     @Override
@@ -77,19 +93,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onPause();
 
         sensorManager.unregisterListener(this);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Toast.makeText(this, "Please grant location permission!", Toast.LENGTH_LONG).show();
-            return;
-        }
-
     }
 
     @Override
@@ -118,14 +121,46 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             mVarioData.addEntry(newEntry);
             float MpS = mVarioData.getCurrentMpS();
-            mGaugeView.setTargetValue(MpS);
 
-            if( MpS > 0 && lastMpS > 0){
-                //play sound
-            }
+            mGaugeView.setTargetValue(MpS);
+            relativeAltitude.setText(String.valueOf(altitude - landingZoneAltitude));
+            playBeepUpdate(1, 1);
 
             lastMpS = MpS;
 
+        }
+    }
+
+    private void playBeepUpdate(float mps, float lastmps){
+
+
+        if(mps > 4 && lastmps > 4){
+            MediaPlayer mpFour= MediaPlayer.create(MainActivity.this, R.raw.four);
+//            mpFour.setLooping(true);
+            mpFour.start();
+
+            playBeep = 3;
+        }else if(mps > 2 && lastmps > 2){
+
+            MediaPlayer mpThree= MediaPlayer.create(MainActivity.this, R.raw.three);
+//            mpThree.setLooping(true);
+            mpThree.start();
+
+            playBeep = 2;
+        }else if(mps > .5 && lastmps > .5){
+
+            MediaPlayer mpTwo= MediaPlayer.create(MainActivity.this, R.raw.two);
+//            mpTwo.setLooping(true);
+            mpTwo.start();
+
+            playBeep = 1;
+        }else{
+
+//            mpFour.stop();
+//            mpThree.stop();
+//            mpTwo.stop();
+
+            playBeep = 0;
         }
     }
 

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Vario</string>
+    <string name="landing_zone_altitude">Landing Zone Altitude: </string>
 </resources>
