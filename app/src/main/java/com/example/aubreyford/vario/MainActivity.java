@@ -6,7 +6,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.media.MediaPlayer;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
@@ -39,21 +40,27 @@ public class MainActivity extends Activity implements SensorEventListener {
     private float landingZoneAltitude;
     private boolean beep = false;
 
-    private MediaPlayer mpFour;
-    private MediaPlayer mpThree;
-    private MediaPlayer mpTwo;
+    SoundPool soundPool;
+    int soundOne;
+    int soundTwo;
+    int soundThree;
+    int soundFour;
+    boolean playedOne = false;
+    boolean playedTwo = false;
+    int streamOne;
+    int streamTwo;
+    int streamThree;
 
 
-    private int[] incrementTest = {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,999999999};
+    private int[] incrementTest = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,5,5,2,2,5,2,2,5,2,2,5,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,999999999};
     private int incrementer = 0;
 
-
-    private boolean test = false;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
@@ -74,18 +81,44 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         Toast.makeText(MainActivity.this, String.valueOf(landingZoneAltitude), Toast.LENGTH_SHORT).show();
         Toast.makeText(MainActivity.this, String.valueOf(mslp), Toast.LENGTH_SHORT).show();
-        mpFour= MediaPlayer.create(MainActivity.this, R.raw.four);
-        mpFour.setLooping(true);
-        mpThree= MediaPlayer.create(MainActivity.this, R.raw.three);
-        mpThree.setLooping(true);
-        mpTwo= MediaPlayer.create(MainActivity.this, R.raw.two);
-        mpTwo.setLooping(true);
+
+
+
+
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
+
+        soundPool = new SoundPool.Builder()
+                .setMaxStreams(1)
+                .setAudioAttributes(
+                        new AudioAttributes.Builder()
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                                .setUsage(AudioAttributes.USAGE_ALARM)
+                                .build()
+                )
+                .build();
+
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId,
+                                       int status) {
+                Log.i("*****ONLOADCOMPLETE**", String.valueOf(sampleId));
+            }
+
+        });
+
+        soundOne = soundPool.load(MainActivity.this, R.raw.one, 1);
+        soundTwo = soundPool.load(MainActivity.this, R.raw.two, 1);
+        soundThree = soundPool.load(MainActivity.this, R.raw.three, 1);
+
+
+
 
         Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
@@ -105,11 +138,9 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onPause() {
         super.onPause();
 
-        mpTwo.stop();
-        mpFour.stop();
-        mpThree.stop();
-
         sensorManager.unregisterListener(this);
+
+        soundPool.release();
         finish();
     }
 
@@ -144,10 +175,10 @@ public class MainActivity extends Activity implements SensorEventListener {
             relativeAltitude.setText(String.valueOf(altitude - landingZoneAltitude));
 
             double rando = (Math.random() * 7) + .5;
-            float randy = (float)rando;
+            float randy = (float) rando;
 
             playBeepUpdate(incrementTest[incrementer], incrementTest[incrementer]);
-            Log.i("****INCREMENTER***", String.valueOf(incrementTest[incrementer+1]));
+
             incrementer++;
 
             lastMpS = MpS;
@@ -157,36 +188,39 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private void playBeepUpdate(float mps, float lastmps){
 
+            if( mps > 4 ){
 
+                if(playedTwo) {
 
-            if( (mps > 4) && (lastmps > 4) ){
+                    soundPool.resume(streamTwo);
 
-                boolean playTest = mpFour.isLooping() && mpFour.isPlaying();
+                    playedTwo=true;
 
-                if(!playTest) {
+                }else{
 
-                    Log.i("TEST*********", String.valueOf(playTest));
-                    mpTwo.pause();
-                    mpFour.start();
+                    streamTwo =  soundPool.play(soundOne, 1, 1, 0, -1, 2);
+
                 }
 
-           }else if( (mps > .5) && (lastmps > .5) ){
+           }else if( mps > .5 ){
 
-                boolean playTest = mpTwo.isLooping() && mpTwo.isPlaying();
+                if(playedOne) {
 
-                if(!playTest) {
+                    soundPool.resume(streamOne);
 
-                    Log.i("TEST*********", String.valueOf(playTest));
-                    mpFour.pause();
-                    mpTwo.start();
+                    playedOne=true;
+
+                }else{
+
+                    streamOne =  soundPool.play(soundOne, 1, 1, 0, -1, 1);
+
                 }
 
             }else{
 
-                mpFour.pause();
-                mpThree.pause();
+                soundPool.autoPause();
 
-        }
+            }
     }
 
     @Override
