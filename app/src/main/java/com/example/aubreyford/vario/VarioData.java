@@ -1,7 +1,5 @@
 package com.example.aubreyford.vario;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -32,8 +30,6 @@ public class VarioData {
                 return 0;
         }else{
 
-                Log.i("*****currentValue*****", String.valueOf(varioData.get(varioData.size()-2).altitude));
-
                 if(lastAltPoint[1] == 0.0){
                     lastAltPoint[0] = varioData.get(varioData.size()-2).altitude;
                     lastAltPoint[1] = varioData.get(varioData.size()-2).timestamp / 1000.0;
@@ -51,9 +47,6 @@ public class VarioData {
 
                     double timeDifference = (current.timestamp - prev.timestamp) / 1000.0;
                     double altitudeReading = current.altitude;
-                    Log.i("****READING***", String.valueOf(altitudeReading));
-
-
 
                     if(i >= 3){
                         double plusOne = varioData.get(i+1).altitude;
@@ -71,13 +64,7 @@ public class VarioData {
                         glitchPresent = Math.abs(altitudeReading - glitchAvg) > (FC *  Math.abs(glitchMedianSort[2] - glitchAvg));
                         if(glitchPresent){
 
-                            Log.i("*****PlusOne*****", String.valueOf(plusOne));
-                            Log.i("*****MinusOne*****", String.valueOf(minusOne));
-                            Log.i("*****MinusTwo*****", String.valueOf(minusTwo));
-                            Log.i("*****MinusThree*****", String.valueOf(minusThree));
-
                             altitudeReading -= (altitudeReading - glitchAvg) * SM ;
-                            Log.i("*****ALTERED*****", String.valueOf(altitudeReading));
 
                         }
                     }
@@ -88,9 +75,6 @@ public class VarioData {
 
 
                 double MpS = (currentPoint[0] - lastAltPoint[0]) / (currentPoint[1] - lastAltPoint[1]);
-
-            Log.i("******MPS:", String.valueOf(MpS));
-            Log.i("******MPS:", String.valueOf(MpS));
 
                 lastAltPoint=currentPoint;
 

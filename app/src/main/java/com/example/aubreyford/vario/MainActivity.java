@@ -38,11 +38,17 @@ public class MainActivity extends Activity implements SensorEventListener {
     private float lastMpS = 0;
     private float landingZoneAltitude;
     private boolean beep = false;
-    private int playBeep = 0;
 
-    MediaPlayer mpFour;
-    MediaPlayer mpThree;
-    MediaPlayer mpTwo;
+    private MediaPlayer mpFour;
+    private MediaPlayer mpThree;
+    private MediaPlayer mpTwo;
+
+
+    private int[] incrementTest = {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,999999999};
+    private int incrementer = 0;
+
+
+    private boolean test = false;
 
 
     @Override
@@ -69,8 +75,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         Toast.makeText(MainActivity.this, String.valueOf(landingZoneAltitude), Toast.LENGTH_SHORT).show();
         Toast.makeText(MainActivity.this, String.valueOf(mslp), Toast.LENGTH_SHORT).show();
         mpFour= MediaPlayer.create(MainActivity.this, R.raw.four);
+        mpFour.setLooping(true);
         mpThree= MediaPlayer.create(MainActivity.this, R.raw.three);
+        mpThree.setLooping(true);
         mpTwo= MediaPlayer.create(MainActivity.this, R.raw.two);
+        mpTwo.setLooping(true);
 
     }
 
@@ -96,7 +105,12 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onPause() {
         super.onPause();
 
+        mpTwo.stop();
+        mpFour.stop();
+        mpThree.stop();
+
         sensorManager.unregisterListener(this);
+        finish();
     }
 
     @Override
@@ -128,7 +142,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 
             mGaugeView.setTargetValue(MpS);
             relativeAltitude.setText(String.valueOf(altitude - landingZoneAltitude));
-            playBeepUpdate(1, 1);
+
+            double rando = (Math.random() * 7) + .5;
+            float randy = (float)rando;
+
+            playBeepUpdate(incrementTest[incrementer], incrementTest[incrementer]);
+            Log.i("****INCREMENTER***", String.valueOf(incrementTest[incrementer+1]));
+            incrementer++;
 
             lastMpS = MpS;
 
@@ -137,46 +157,35 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private void playBeepUpdate(float mps, float lastmps){
 
-        if(mps > 4 && lastmps > 4){
-
-            if(!mpFour.isLooping()) {
-                mpFour.setLooping(true);
-                mpFour.start();
-                mpThree.stop();
-                mpTwo.stop();
-            }
-
-            playBeep = 3;
-        }else if(mps > 2 && lastmps > 2){
-
-            if(!mpThree.isLooping()){
-                mpThree.setLooping(true);
-                mpThree.start();
-                mpFour.stop();
-                mpTwo.stop();
-            }
 
 
-            playBeep = 2;
-        }else if(mps > .5 && lastmps > .5){
+            if( (mps > 4) && (lastmps > 4) ){
 
-            if(!mpTwo.isLooping()){
-                Log.i("**********************", "TWOPLAYED");
-                mpTwo.setLooping(true);
-                mpTwo.start();
-                mpFour.stop();
-                mpThree.stop();
-            }
+                boolean playTest = mpFour.isLooping() && mpFour.isPlaying();
 
+                if(!playTest) {
 
-            playBeep = 1;
-        }else{
+                    Log.i("TEST*********", String.valueOf(playTest));
+                    mpTwo.pause();
+                    mpFour.start();
+                }
 
-            mpFour.stop();
-            mpThree.stop();
-            mpTwo.stop();
+           }else if( (mps > .5) && (lastmps > .5) ){
 
-            playBeep = 0;
+                boolean playTest = mpTwo.isLooping() && mpTwo.isPlaying();
+
+                if(!playTest) {
+
+                    Log.i("TEST*********", String.valueOf(playTest));
+                    mpFour.pause();
+                    mpTwo.start();
+                }
+
+            }else{
+
+                mpFour.pause();
+                mpThree.pause();
+
         }
     }
 
