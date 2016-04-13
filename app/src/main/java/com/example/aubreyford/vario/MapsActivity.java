@@ -1,13 +1,14 @@
 package com.example.aubreyford.vario;
 
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -34,15 +35,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Bundle bundle = getIntent().getExtras();
         ArrayList<AltitudeEntry> altitudeEntries = (ArrayList<AltitudeEntry>)bundle.getSerializable("altitudeEntries");
 
+        double[] cameraMax = { altitudeEntries.get(0).getLattitude(), altitudeEntries.get(0).getLongitude(),
+                altitudeEntries.get(altitudeEntries.size()-1).getLattitude(), altitudeEntries.get(altitudeEntries.size()-1).getLongitude() };
+
         LatLng start = new LatLng(altitudeEntries.get(0).getLattitude(), altitudeEntries.get(0).getLongitude());
         LatLng ending = new LatLng(altitudeEntries.get(altitudeEntries.size()-1).getLattitude(), altitudeEntries.get(altitudeEntries.size()-1).getLongitude());
         mMap.addMarker(new MarkerOptions().position(start).title("Start"));
         mMap.addMarker(new MarkerOptions().position(ending).title("End"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
 
         for(int i = 0 ; i < altitudeEntries.size()-1 ; i += 5 ){
 
-            if(i + 5 >= altitudeEntries.size()-1){
+            cameraMax[0] = Math.max(altitudeEntries.get(i).getLattitude(), cameraMax[0]);
+            cameraMax[1] = Math.max(altitudeEntries.get(i).getLongitude(), cameraMax[1]);
+            cameraMax[2] = Math.min(altitudeEntries.get(i).getLattitude(), cameraMax[2]);
+            cameraMax[3] = Math.min(altitudeEntries.get(i).getLongitude(), cameraMax[3]);
+
+            if((i + 5) >= (altitudeEntries.size()-1)){
 
                 LatLng priorLatlng =  new LatLng(altitudeEntries.get(i).getLattitude(), altitudeEntries.get(i).getLongitude());
                 mMap.addPolyline(new PolylineOptions().geodesic(true).add(priorLatlng).add(ending));
@@ -55,5 +63,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         }
+
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(new LatLng(cameraMax[0], cameraMax[1]));
+        builder.include(new LatLng(cameraMax[2], cameraMax[3]));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 48));
+
+
     }
 }
