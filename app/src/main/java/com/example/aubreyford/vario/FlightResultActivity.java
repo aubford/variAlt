@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.InputFilter;
@@ -15,6 +14,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -87,7 +87,7 @@ public class FlightResultActivity extends Activity {
         String distance = String.format("%.2f", distanceFloat) + " m";
         mDistance.setText(String.valueOf(distance));
 
-
+        database = new dbHandler(FlightResultActivity.this, null, null, 2);
 
         mMap.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,7 +98,7 @@ public class FlightResultActivity extends Activity {
             }
         });
 
-        database = new dbHandler(this, null, null, 1);
+
 
         mSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,8 +109,7 @@ public class FlightResultActivity extends Activity {
 
                 final EditText input = new EditText(FlightResultActivity.this);
 
-                input.setInputType(InputType.TYPE_CLASS_NUMBER);
-                input.setRawInputType(Configuration.KEYBOARD_QWERTY);
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
                 input.setGravity(Gravity.CENTER_HORIZONTAL);
                 input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(12)});
                 builder.setView(input);
@@ -126,9 +125,10 @@ public class FlightResultActivity extends Activity {
 
                         database.addFlight(name, formattedDate, flightTimeMillis, millisDouble, altitudeEntries);
 
-
+                        Toast.makeText(FlightResultActivity.this, "Saved", Toast.LENGTH_SHORT).show();
                     }
                 });
+
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

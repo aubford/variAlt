@@ -92,6 +92,15 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
 
     private void setListeners() {
 
+
+        myFlights.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(SplashActivity.this, ShowAllActivity.class);
+                startActivity(i);
+            }
+        });
+
         startFlight.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
