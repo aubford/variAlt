@@ -119,10 +119,8 @@ public class MainActivity extends Activity implements SensorEventListener, Googl
     protected void onResume() {
         super.onResume();
 
-
         chronometer.setBase(SystemClock.elapsedRealtime());
         chronometer.start();
-
 
         soundPool = new SoundPool.Builder()
                 .setMaxStreams(1)
@@ -149,10 +147,8 @@ public class MainActivity extends Activity implements SensorEventListener, Googl
 
         soundOne = soundPool.load(MainActivity.this, R.raw.beep, 1);
 
-
         Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
-        // Only make registration call if device has a pressure sensor
         if (sensor != null) {
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
         } else {

@@ -36,8 +36,8 @@
         gauge:showInnerRim="true"
         gauge:needleWidth="0.030"
         gauge:needleHeight="0.40"
-        gauge:scaleStartValue="-15"
-        gauge:scaleEndValue="15"
+        gauge:scaleStartValue="-10"
+        gauge:scaleEndValue="10"
         gauge:showNeedle="true" />
 
     <TextView
