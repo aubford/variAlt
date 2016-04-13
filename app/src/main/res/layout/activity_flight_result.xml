@@ -134,7 +134,7 @@
         android:layout_width="match_parent"
         android:layout_height="87dp"
         android:text="Map"
-        android:id="@+id/button"
+        android:id="@+id/result_map"
         android:layout_below="@+id/spl_enterLanding"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true" />

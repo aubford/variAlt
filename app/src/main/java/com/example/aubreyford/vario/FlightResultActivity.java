@@ -1,9 +1,12 @@
 package com.example.aubreyford.vario;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -17,6 +20,7 @@ public class FlightResultActivity extends Activity {
     TextView mAltDif;
     TextView mAscendingTime;
     TextView mDistance;
+    Bundle bundle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +28,7 @@ public class FlightResultActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_flight_result);
 
-        Bundle bundle = getIntent().getExtras();
+        bundle = getIntent().getExtras();
         ArrayList<AltitudeEntry> altitudeEntries = (ArrayList<AltitudeEntry>)bundle.getSerializable("altitudeEntries");
 
         mFlightTime = (TextView) findViewById(R.id.result_flight_time);
@@ -33,6 +37,7 @@ public class FlightResultActivity extends Activity {
         mAltDif = (TextView) findViewById(R.id.result_difference);
         mAscendingTime = (TextView) findViewById(R.id.result_ascending);
         mDistance = (TextView) findViewById(R.id.results_distance);
+        Button mMap = (Button) findViewById(R.id.result_map);
 
         long flightTimeMillis = bundle.getLong("flightTime");
         String totalTime  = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(flightTimeMillis),
@@ -65,6 +70,33 @@ public class FlightResultActivity extends Activity {
         float distanceFloat = locationA.distanceTo(locationB);
         String distance = String.format("%.2f", distanceFloat) + " m";
         mDistance.setText(String.valueOf(distance));
+
+
+
+        mMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(FlightResultActivity.this, MapsActivity.class);
+                i.putExtras(bundle);
+                startActivity(i);
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     }
 
