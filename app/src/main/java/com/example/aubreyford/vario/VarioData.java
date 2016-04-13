@@ -23,10 +23,10 @@ public class VarioData {
 
     public float getCurrentMpS(){
 
-        double FC = 4.3;
-        double SM = .87;
+        double FC = 3.3;
+        double SM = .77;
 
-        if(varioData.size() < 6) {
+        if(varioData.size() < 7) {
                 return 0;
         }else{
 
@@ -38,9 +38,9 @@ public class VarioData {
                 double[] currentPoint = {0.0, varioData.get(varioData.size()-1).timestamp / 1000.0};
 
                 double sum = 0.0;
-                double netTime = (varioData.get(varioData.size()-2).timestamp - varioData.get(varioData.size()-5).timestamp) / 1000.0;
+                double netTime = (varioData.get(varioData.size()-2).timestamp - varioData.get(varioData.size()-7).timestamp) / 1000.0;
 
-                for(int i = varioData.size() - 4 ; i <= varioData.size() - 2 ; i++ ){
+                for(int i = varioData.size() - 6 ; i <= varioData.size() - 2 ; i++ ){
 
                     AltitudeEntry current = varioData.get(i);
                     AltitudeEntry prev = varioData.get(i-1);
@@ -56,10 +56,7 @@ public class VarioData {
 
                         double[] glitchMedianSort = {plusOne, minusOne, minusTwo, minusThree};
                         Arrays.sort(glitchMedianSort);
-//                        Log.i("***glitchMedianSort***", String.valueOf(glitchMedianSort[0]) + "  " + String.valueOf(glitchMedianSort[1]) + "  " + String.valueOf(glitchMedianSort[2]) + "   " + String.valueOf(glitchMedianSort[3]));
-
                         double glitchAvg = (plusOne + minusOne + minusTwo + minusThree) / 4;
-//                        Log.i("*****glitchAvg*****", String.valueOf(glitchAvg));
 
                         glitchPresent = Math.abs(altitudeReading - glitchAvg) > (FC *  Math.abs(glitchMedianSort[2] - glitchAvg));
                         if(glitchPresent){

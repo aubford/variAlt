@@ -2,6 +2,7 @@ package com.example.aubreyford.vario;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -9,10 +10,12 @@ import android.hardware.SensorManager;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.SystemClock;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,21 +41,18 @@ public class MainActivity extends Activity implements SensorEventListener {
     private GaugeView mGaugeView;
     private float lastMpS = 0;
     private float landingZoneAltitude;
-    private boolean beep = false;
 
-    SoundPool soundPool;
-    int soundOne;
-    int soundTwo;
-    int soundThree;
-    int soundFour;
-    boolean playedOne = false;
-    boolean playedTwo = false;
-    int streamOne;
-    int streamTwo;
-    int streamThree;
+    private SoundPool soundPool;
+    private int soundOne;
+    private int streamOne;
+    private boolean beep;
 
 
-    private int[] incrementTest = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,5,5,2,2,5,2,2,5,2,2,5,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,999999999};
+    Chronometer chronometer;
+
+
+
+    private int[] incrementTest = {0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,5,5,2,2,5,2,2,5,2,2,5,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,999999999};
     private int incrementer = 0;
 
 
@@ -71,7 +71,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         mGaugeView = (GaugeView) findViewById(R.id.gauge_view);
         barometerAltitudeView = (TextView) findViewById(R.id.main_barometerAltitude);
         relativeAltitude = (TextView) findViewById(R.id.main_relativeAltitude);
-        flightTime = (TextView) findViewById(R.id.main_flightTime);
+        chronometer = (Chronometer) findViewById(R.id.main_chronometer);
         endFlight = (Button) findViewById(R.id.main_endFlight);
 
         Bundle bundle = getIntent().getExtras();
@@ -79,11 +79,21 @@ public class MainActivity extends Activity implements SensorEventListener {
         mslp = bundle.getFloat("mslp");
         landingZoneAltitude = bundle.getFloat("landingZoneAltitude");
 
-        Toast.makeText(MainActivity.this, String.valueOf(landingZoneAltitude), Toast.LENGTH_SHORT).show();
-        Toast.makeText(MainActivity.this, String.valueOf(mslp), Toast.LENGTH_SHORT).show();
+
+        endFlight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                long flightTime = SystemClock.elapsedRealtime() - chronometer.getBase();
 
 
-
+                Intent i = new Intent(MainActivity.this, FlightResultActivity.class);
+                i.putExtra("mslp", mslp);
+                i.putExtra("landingZoneAltitude", landingZoneAltitude);
+                i.putExtra("flightTime", flightTime);
+                startActivity(i);
+            }
+        });
 
 
     }
@@ -91,6 +101,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     protected void onResume() {
         super.onResume();
+
+
+        chronometer.setBase(SystemClock.elapsedRealtime());
+        chronometer.start();
+
 
 
         soundPool = new SoundPool.Builder()
@@ -108,16 +123,15 @@ public class MainActivity extends Activity implements SensorEventListener {
             @Override
             public void onLoadComplete(SoundPool soundPool, int sampleId,
                                        int status) {
-                Log.i("*****ONLOADCOMPLETE**", String.valueOf(sampleId));
+                streamOne =  soundPool.play(soundOne, 0, 0, 0, -1, 1);
+                soundPool.pause(streamOne);
+                soundPool.setVolume(streamOne, 1, 1);
+
             }
 
         });
 
-        soundOne = soundPool.load(MainActivity.this, R.raw.one, 1);
-        soundTwo = soundPool.load(MainActivity.this, R.raw.two, 1);
-        soundThree = soundPool.load(MainActivity.this, R.raw.three, 1);
-
-
+        soundOne = soundPool.load(MainActivity.this, R.raw.beep, 1);
 
 
         Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
@@ -126,11 +140,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         if (sensor != null) {
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
         }else{
-            Toast.makeText(this, "You do not have a pressure sensor!", Toast.LENGTH_LONG).show();
-        }
-
-        while(beep){
-            Toast.makeText(MainActivity.this, "Thermal", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You do not have a pressure sensor! This app requires a pressure sensor.", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -158,10 +168,12 @@ public class MainActivity extends Activity implements SensorEventListener {
             if (mslp != null)
             {
                 altitude = SensorManager.getAltitude(mslp, currentBarometerValue);
-                barometerAltitudeView.setText(String.valueOf(altitude));
+                String altString = String.format("%.2f", altitude) + " m";
+                barometerAltitudeView.setText(String.valueOf(altString));
             }else{
                 altitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, currentBarometerValue);
-                barometerAltitudeView.setText(String.valueOf(altitude));
+                String altString = String.format("%.2f", altitude) + " m";
+                barometerAltitudeView.setText(String.valueOf(altString));
             }
 
             lastBarometerAltitudeTimestamp = (long)currentTimestamp;
@@ -172,12 +184,12 @@ public class MainActivity extends Activity implements SensorEventListener {
             float MpS = mVarioData.getCurrentMpS();
 
             mGaugeView.setTargetValue(MpS);
-            relativeAltitude.setText(String.valueOf(altitude - landingZoneAltitude));
 
-            double rando = (Math.random() * 7) + .5;
-            float randy = (float) rando;
+            float altDif = altitude - landingZoneAltitude;
+            String altitudeFormatted = String.format("%.2f", altDif) + " m";
+            relativeAltitude.setText(altitudeFormatted);
 
-            playBeepUpdate(incrementTest[incrementer], incrementTest[incrementer]);
+            playBeepUpdate(MpS);
 
             incrementer++;
 
@@ -186,39 +198,32 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
     }
 
-    private void playBeepUpdate(float mps, float lastmps){
+    private void playBeepUpdate(float mps){
 
-            if( mps > 4 ){
+            if( mps > 4 ) {
 
-                if(playedTwo) {
+                soundPool.setRate(streamOne, 2.0f);
+                soundPool.resume(streamOne);
+                beep = true;
+//                Toast.makeText(MainActivity.this, "Thermal Heavy", Toast.LENGTH_SHORT).show();
 
-                    soundPool.resume(streamTwo);
+            }else if(mps > 2){
 
-                    playedTwo=true;
+                soundPool.setRate(streamOne, 1.8f);
+                soundPool.resume(streamOne);
+                beep=true;
+//                Toast.makeText(MainActivity.this, "Thermal Medium", Toast.LENGTH_SHORT).show();
+           }else if( mps > 1 ){
 
-                }else{
-
-                    streamTwo =  soundPool.play(soundOne, 1, 1, 0, -1, 2);
-
-                }
-
-           }else if( mps > .5 ){
-
-                if(playedOne) {
-
-                    soundPool.resume(streamOne);
-
-                    playedOne=true;
-
-                }else{
-
-                    streamOne =  soundPool.play(soundOne, 1, 1, 0, -1, 1);
-
-                }
+                soundPool.setRate(streamOne, 1.5f);
+                soundPool.resume(streamOne);
+                beep=true;
+//                Toast.makeText(MainActivity.this, "Thermal Light", Toast.LENGTH_SHORT).show();
 
             }else{
 
                 soundPool.autoPause();
+                beep=false;
 
             }
     }

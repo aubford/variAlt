@@ -58,7 +58,7 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
 
     private float landingZoneAltitude;
     private Float mslp;
-    private String landingString;
+    private boolean triedMSLP;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +66,6 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_splash);
-        landingString = getResources().getString(R.string.landing_zone_altitude);
 
         startFlight = (ImageButton) findViewById(R.id.spl_startFlight);
         enterLanding = (Button) findViewById(R.id.spl_enterLanding);
@@ -94,15 +93,24 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
 
     private void setListeners() {
 
-
-
         startFlight.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(SplashActivity.this, MainActivity.class);
-                i.putExtra("mslp", mslp);
-                i.putExtra("landingZoneAltitude", landingZoneAltitude);
-                startActivity(i);
+
+                if(triedMSLP){
+                    Intent i = new Intent(SplashActivity.this, MainActivity.class);
+                    i.putExtra("mslp", mslp);
+                    i.putExtra("landingZoneAltitude", landingZoneAltitude);
+                    startActivity(i);
+
+                }else{
+
+                    Toast toast = Toast.makeText(SplashActivity.this, "Please wait for calibration attempt", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.TOP, 0, 340);
+                    toast.show();
+
+                }
+
             }
         });
 
@@ -128,7 +136,7 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
                     public void onClick(DialogInterface dialog, int which) {
                         String m_Text = input.getText().toString();
                         landingZoneAltitude = Float.valueOf(m_Text);
-                        String newLandingText = landingString + " " + String.format("%.2f", landingZoneAltitude) + "m";
+                        String newLandingText = String.format("%.2f", landingZoneAltitude) + "m";
                         mLanding.setText(newLandingText);
 
                     }
@@ -155,7 +163,9 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
                 if (sensor != null) {
                     sensorManager.registerListener(SplashActivity.this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
                 } else {
-                    Toast.makeText(SplashActivity.this, "You do not have a pressure sensor!", Toast.LENGTH_LONG).show();
+                    Toast toast = Toast.makeText(SplashActivity.this, "You do not have a pressure sensor!, This app requires a pressure sensor", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.TOP, 0, 340);
+                    toast.show();
                 }
 
             }
@@ -166,7 +176,7 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
     public void onSensorChanged(SensorEvent event) {
 
             landingZoneAltitude = SensorManager.getAltitude(mslp, event.values[0]);
-            String newLandingText = landingString + " " + String.format("%.2f", landingZoneAltitude) + "m";
+            String newLandingText = String.format("%.2f", landingZoneAltitude) + " m";
             mLanding.setText(newLandingText);
 
         sensorManager.unregisterListener(this);
@@ -305,10 +315,20 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
         @Override
         protected void onPostExecute(Float result)
         {
+
+            triedMSLP = true;
+
             if (result == null) {
-                Toast.makeText(SplashActivity.this, "No weather station data available at this location.  Absolute altitude data will be less accurate.", Toast.LENGTH_LONG).show();
+
+                Toast toast = Toast.makeText(SplashActivity.this, "No weather station data available at this location.  Absolute altitude data will be less accurate.", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP, 0, 340);
+                toast.show();
+
             }else{
-                Toast.makeText(SplashActivity.this, "Calibration Successful.", Toast.LENGTH_LONG).show();
+
+                Toast toastB = Toast.makeText(SplashActivity.this, "Calibration Successful.", Toast.LENGTH_SHORT);
+                toastB.setGravity(Gravity.TOP, 0, 340);
+                toastB.show();
                 mslp = result;
             }
         }
