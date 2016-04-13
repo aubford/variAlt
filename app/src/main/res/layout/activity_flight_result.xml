@@ -5,9 +5,22 @@
 
     <TextView
         android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Flight Results"
+        android:id="@+id/asf089hq34908h4q3f"
+        android:textAlignment="center"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:textIsSelectable="false"
+        android:textColor="#FFEE0B0A"
+        android:layout_marginTop="5dp" />
+
+    <TextView
+        android:layout_width="match_parent"
         android:layout_height="29dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Altitude"
+        android:text="Flight Time"
         android:id="@+id/textView6"
         android:textAlignment="center" />
 
@@ -16,9 +29,113 @@
         android:layout_height="40dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="0"
-        android:id="@+id/textView7"
+        android:id="@+id/result_flight_time"
         android:textSize="30sp"
         android:textAlignment="center"
         android:singleLine="true"
         android:textColor="#2bc600" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="29dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Starting Altitude"
+        android:id="@+id/asdfa4t34"
+        android:textAlignment="center" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="0"
+        android:id="@+id/result_starting_altitude"
+        android:textSize="30sp"
+        android:textAlignment="center"
+        android:singleLine="true"
+        android:textColor="#2bc600" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="29dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Ending Altitude"
+        android:id="@+id/asdfiugh"
+        android:textAlignment="center" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="0"
+        android:id="@+id/result_ending_altitude"
+        android:textSize="30sp"
+        android:textAlignment="center"
+        android:singleLine="true"
+        android:textColor="#2bc600" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="29dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Altitude Difference"
+        android:id="@+id/testa"
+        android:textAlignment="center" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="0"
+        android:id="@+id/result_difference"
+        android:textSize="30sp"
+        android:textAlignment="center"
+        android:singleLine="true"
+        android:textColor="#2bc600" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="29dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Total Ascending Time"
+        android:id="@+id/fq34q4fqw4f"
+        android:textAlignment="center" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="0"
+        android:id="@+id/result_ascending"
+        android:textSize="30sp"
+        android:textAlignment="center"
+        android:singleLine="true"
+        android:textColor="#2bc600" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="29dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Distance"
+        android:id="@+id/textView16"
+        android:textAlignment="center" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="0"
+        android:id="@+id/results_distance"
+        android:textSize="30sp"
+        android:textAlignment="center"
+        android:singleLine="true"
+        android:textColor="#2bc600" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="87dp"
+        android:text="Map"
+        android:id="@+id/button"
+        android:layout_below="@+id/spl_enterLanding"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
 </LinearLayout>

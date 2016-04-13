@@ -1,16 +1,21 @@
 package com.example.aubreyford.vario;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -19,18 +24,22 @@ import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+
 import io.sule.gaugelibrary.GaugeView;
 
 
-public class MainActivity extends Activity implements SensorEventListener {
+public class MainActivity extends Activity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final int TIMEOUT = 350; // waaaas 1 second
     private static final long NS_TO_MS_CONVERSION = (long) 1E6;
     // System services
     private SensorManager sensorManager;
+    private GoogleApiClient mGoogleApiClient;
     // UI Views
     private TextView barometerAltitudeView;
     private TextView relativeAltitude;
-    private TextView flightTime;
     private Button endFlight;
     // Member state
     private long lastBarometerAltitudeTimestamp = -1;
@@ -39,23 +48,18 @@ public class MainActivity extends Activity implements SensorEventListener {
     private Float mslp;
     private VarioData mVarioData = new VarioData();
     private GaugeView mGaugeView;
-    private float lastMpS = 0;
     private float landingZoneAltitude;
+    float altitude;
 
     private SoundPool soundPool;
     private int soundOne;
     private int streamOne;
     private boolean beep;
 
-
     Chronometer chronometer;
 
-
-
-    private int[] incrementTest = {0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,5,5,2,2,5,2,2,5,2,2,5,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,999999999};
-    private int incrementer = 0;
-
-
+    private Location mLastLocation;
+    private boolean locationIsConnected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,16 +90,29 @@ public class MainActivity extends Activity implements SensorEventListener {
 
                 long flightTime = SystemClock.elapsedRealtime() - chronometer.getBase();
 
-
                 Intent i = new Intent(MainActivity.this, FlightResultActivity.class);
-                i.putExtra("mslp", mslp);
-                i.putExtra("landingZoneAltitude", landingZoneAltitude);
                 i.putExtra("flightTime", flightTime);
+                i.putExtra("altitudeEntries", mVarioData.getAltitudeEntries());
+                i.putExtra("ascendingTime", mVarioData.getAscendingTime());
                 startActivity(i);
             }
         });
 
 
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -105,7 +122,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         chronometer.setBase(SystemClock.elapsedRealtime());
         chronometer.start();
-
 
 
         soundPool = new SoundPool.Builder()
@@ -123,7 +139,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             @Override
             public void onLoadComplete(SoundPool soundPool, int sampleId,
                                        int status) {
-                streamOne =  soundPool.play(soundOne, 0, 0, 0, -1, 1);
+                streamOne = soundPool.play(soundOne, 0, 0, 0, -1, 1);
                 soundPool.pause(streamOne);
                 soundPool.setVolume(streamOne, 1, 1);
 
@@ -139,7 +155,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         // Only make registration call if device has a pressure sensor
         if (sensor != null) {
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
-        }else{
+        } else {
             Toast.makeText(this, "You do not have a pressure sensor! This app requires a pressure sensor.", Toast.LENGTH_LONG).show();
         }
     }
@@ -151,50 +167,67 @@ public class MainActivity extends Activity implements SensorEventListener {
         sensorManager.unregisterListener(this);
 
         soundPool.release();
+        mGoogleApiClient.disconnect();
         finish();
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event)
-    {
-        float altitude;
+    public void onSensorChanged(SensorEvent event) {
 
-        currentBarometerValue = event.values[0];
+        if(locationIsConnected) {
 
-        double currentTimestamp = event.timestamp / NS_TO_MS_CONVERSION;
-        double elapsedTime = currentTimestamp - lastBarometerAltitudeTimestamp;
-        if (lastBarometerAltitudeTimestamp == -1 || elapsedTime > TIMEOUT)
-        {
-            if (mslp != null)
-            {
-                altitude = SensorManager.getAltitude(mslp, currentBarometerValue);
-                String altString = String.format("%.2f", altitude) + " m";
-                barometerAltitudeView.setText(String.valueOf(altString));
-            }else{
-                altitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, currentBarometerValue);
-                String altString = String.format("%.2f", altitude) + " m";
-                barometerAltitudeView.setText(String.valueOf(altString));
+            currentBarometerValue = event.values[0];
+
+            double currentTimestamp = event.timestamp / NS_TO_MS_CONVERSION;
+            double elapsedTime = currentTimestamp - lastBarometerAltitudeTimestamp;
+            if (lastBarometerAltitudeTimestamp == -1 || elapsedTime > TIMEOUT) {
+                if (mslp != null) {
+                    altitude = SensorManager.getAltitude(mslp, currentBarometerValue);
+                    String altString = String.format("%.2f", altitude) + " m";
+                    barometerAltitudeView.setText(String.valueOf(altString));
+                } else {
+                    altitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, currentBarometerValue);
+                    String altString = String.format("%.2f", altitude) + " m";
+                    barometerAltitudeView.setText(String.valueOf(altString));
+                }
+
+
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+                if (mLastLocation != null) {
+                    AltitudeEntry newEntry = new AltitudeEntry(altitude, currentTimestamp, mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                    mVarioData.addEntry(newEntry);
+                } else {
+                    AltitudeEntry newEntry = new AltitudeEntry(altitude, currentTimestamp, 0, 0);
+                    mVarioData.addEntry(newEntry);
+                }
+
+
+                float MpS = mVarioData.getCurrentMpS();
+                mGaugeView.setTargetValue(MpS);
+
+                if (MpS > 0) {
+                    mVarioData.addAscendingTime(elapsedTime);
+                }
+
+                float altDif = altitude - landingZoneAltitude;
+                String altitudeFormatted = String.format("%.2f", altDif) + " m";
+                relativeAltitude.setText(altitudeFormatted);
+
+                playBeepUpdate(MpS);
+                lastBarometerAltitudeTimestamp = (long) currentTimestamp;
             }
-
-            lastBarometerAltitudeTimestamp = (long)currentTimestamp;
-            AltitudeEntry newEntry = new AltitudeEntry(altitude, currentTimestamp);
-
-
-            mVarioData.addEntry(newEntry);
-            float MpS = mVarioData.getCurrentMpS();
-
-            mGaugeView.setTargetValue(MpS);
-
-            float altDif = altitude - landingZoneAltitude;
-            String altitudeFormatted = String.format("%.2f", altDif) + " m";
-            relativeAltitude.setText(altitudeFormatted);
-
-            playBeepUpdate(MpS);
-
-            incrementer++;
-
-            lastMpS = MpS;
-
         }
     }
 
@@ -234,4 +267,21 @@ public class MainActivity extends Activity implements SensorEventListener {
         // no-op
     }
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        locationIsConnected = true;
+        Log.i("CONNECTED", "CONNECTED");
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.i("CONNECTIONFAILED:::::", "CONNECTIONFAILED");
+
+    }
 }

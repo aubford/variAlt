@@ -7,10 +7,17 @@ public class VarioData {
     ArrayList<AltitudeEntry> varioData;
     double[] lastAltPoint = {0.0, 0.0};
     boolean glitchPresent;
-
+    double ascendingTime = 0;
 
     public VarioData(){
         this.varioData = new ArrayList<>();
+    }
+
+    public void addAscendingTime(double time){
+        ascendingTime += time;
+    }
+    public double getAscendingTime(){
+        return ascendingTime;
     }
 
     public ArrayList<AltitudeEntry> getAltitudeEntries() {

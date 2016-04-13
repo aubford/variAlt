@@ -2,5 +2,6 @@
 <resources>
     <string name="app_name">Vario</string>
     <string name="landing_zone_altitude">Landing Zone Altitude: </string>
+    <string name="google_app_id">varialt-1274</string>
 
 </resources>

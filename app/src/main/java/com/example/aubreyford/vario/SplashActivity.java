@@ -76,7 +76,6 @@ public class SplashActivity extends Activity implements GoogleApiClient.Connecti
         mslp = SensorManager.PRESSURE_STANDARD_ATMOSPHERE;
         landingZoneAltitude = 0;
 
-
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
