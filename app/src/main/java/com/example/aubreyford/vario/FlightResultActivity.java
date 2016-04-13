@@ -9,7 +9,10 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class FlightResultActivity extends Activity {
@@ -21,6 +24,11 @@ public class FlightResultActivity extends Activity {
     TextView mAscendingTime;
     TextView mDistance;
     Bundle bundle;
+    Button mMap;
+    Button mSave;
+    dbHandler database;
+    long flightTimeMillis;
+    ArrayList<AltitudeEntry> altitudeEntries;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +37,7 @@ public class FlightResultActivity extends Activity {
         setContentView(R.layout.activity_flight_result);
 
         bundle = getIntent().getExtras();
-        ArrayList<AltitudeEntry> altitudeEntries = (ArrayList<AltitudeEntry>)bundle.getSerializable("altitudeEntries");
+        altitudeEntries = (ArrayList<AltitudeEntry>)bundle.getSerializable("altitudeEntries");
 
         mFlightTime = (TextView) findViewById(R.id.result_flight_time);
         mStartingAlt = (TextView) findViewById(R.id.result_starting_altitude);
@@ -37,16 +45,17 @@ public class FlightResultActivity extends Activity {
         mAltDif = (TextView) findViewById(R.id.result_difference);
         mAscendingTime = (TextView) findViewById(R.id.result_ascending);
         mDistance = (TextView) findViewById(R.id.results_distance);
-        Button mMap = (Button) findViewById(R.id.result_map);
+        mMap = (Button) findViewById(R.id.result_map);
+        mSave = (Button) findViewById(R.id.result_save);
 
-        long flightTimeMillis = bundle.getLong("flightTime");
+        flightTimeMillis = bundle.getLong("flightTime");
         String totalTime  = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(flightTimeMillis),
                 TimeUnit.MILLISECONDS.toMinutes(flightTimeMillis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(flightTimeMillis)),
                 TimeUnit.MILLISECONDS.toSeconds(flightTimeMillis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(flightTimeMillis)));
         mFlightTime.setText(totalTime);
 
 
-        double millisDouble = bundle.getDouble("ascendingTime");
+        final double millisDouble = bundle.getDouble("ascendingTime");
         long millis = (long)millisDouble;
         String ascendingTime = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
                 TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
@@ -82,23 +91,19 @@ public class FlightResultActivity extends Activity {
             }
         });
 
+        database = new dbHandler(this, null, null, 1);
 
+        mSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                Date date = new Date();
+                String formattedDate = dateFormat.format(date);
 
+                database.addFlight(formattedDate, flightTimeMillis, millisDouble, altitudeEntries);
 
-
-
-
-
-
-
-
-
-
-
-
-
+            }
+        });
     }
-
-
 }

@@ -61,13 +61,13 @@ public class MainActivity extends Activity implements SensorEventListener, Googl
     private Location mLastLocation;
     private boolean locationIsConnected = false;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
-
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -91,8 +91,8 @@ public class MainActivity extends Activity implements SensorEventListener, Googl
                 long flightTime = SystemClock.elapsedRealtime() - chronometer.getBase();
 
                 Intent i = new Intent(MainActivity.this, FlightResultActivity.class);
-                i.putExtra("flightTime", flightTime);
                 i.putExtra("altitudeEntries", mVarioData.getAltitudeEntries());
+                i.putExtra("flightTime", flightTime);
                 i.putExtra("ascendingTime", mVarioData.getAscendingTime());
                 startActivity(i);
             }

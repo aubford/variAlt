@@ -26,4 +26,5 @@ dependencies {
     compile project(':gaugelibrary')
     compile 'com.android.support:appcompat-v7:23.3.0'
     compile 'com.google.android.gms:play-services:8.4.0'
+    compile 'com.google.code.gson:gson:2.6.2'
 }
