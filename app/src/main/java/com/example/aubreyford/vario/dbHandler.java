@@ -20,7 +20,7 @@ public class dbHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String query = "CREATE TABLE " + "flights" + "(" +
-                "id" + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "id" + " INTEGER PRIMARY KEY AUTOINCREMENT, " + "name" + "TEXT" +
                 "date" + " TEXT, " + "flight_time" + "INTEGER," + "ascending_time" + "REAL" + "altitude_entries" + "TEXT" +
                 ");";
         db.execSQL(query);
@@ -33,12 +33,11 @@ public class dbHandler extends SQLiteOpenHelper {
     }
 
     //Add a new row to the database
-    public void addFlight(String date, long flight_time, double ascending_time, ArrayList<AltitudeEntry> altitude_entries){
+    public void addFlight(String name, String date, long flight_time, double ascending_time, ArrayList<AltitudeEntry> altitude_entries){
         ContentValues values = new ContentValues();
 
         Gson gson = new Gson();
         String altitude_entries_string = gson.toJson(altitude_entries);
-
 
         values.put("date", date);
         values.put("flight_time", flight_time);

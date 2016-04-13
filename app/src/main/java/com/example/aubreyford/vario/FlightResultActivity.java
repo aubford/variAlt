@@ -1,12 +1,19 @@
 package com.example.aubreyford.vario;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.text.DateFormat;
@@ -97,11 +104,39 @@ public class FlightResultActivity extends Activity {
             @Override
             public void onClick(View v) {
 
-                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-                Date date = new Date();
-                String formattedDate = dateFormat.format(date);
+                AlertDialog.Builder builder = new AlertDialog.Builder(FlightResultActivity.this);
+                builder.setTitle("Enter A Name");
 
-                database.addFlight(formattedDate, flightTimeMillis, millisDouble, altitudeEntries);
+                final EditText input = new EditText(FlightResultActivity.this);
+
+                input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                input.setRawInputType(Configuration.KEYBOARD_QWERTY);
+                input.setGravity(Gravity.CENTER_HORIZONTAL);
+                input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(12)});
+                builder.setView(input);
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String name = input.getText().toString();
+
+                        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                        Date date = new Date();
+                        String formattedDate = dateFormat.format(date);
+
+                        database.addFlight(name, formattedDate, flightTimeMillis, millisDouble, altitudeEntries);
+
+
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
 
             }
         });
