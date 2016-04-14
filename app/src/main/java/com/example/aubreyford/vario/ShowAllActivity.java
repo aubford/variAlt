@@ -21,21 +21,19 @@ public class ShowAllActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_show_all);
+
         database = new dbHandler(this, null, null, 1);
-
-        Cursor cursory = database.getDatabase();
-
-//        flight_time = cursor.getLong(cursor.getColumnIndexOrThrow("flight_time"));
-//        ascending_time = cursor.getDouble(cursor.getColumnIndexOrThrow("flight_time"));
-//        altitude_entries_gson = cursor.getString(cursor.getColumnIndexOrThrow("flight_time"));
+        Cursor cursor = database.getDatabase();
 
         ListView lvItems = (ListView) findViewById(R.id.all_listView);
-
-        AllCursorAdapter adapter = new AllCursorAdapter(ShowAllActivity.this, cursory, 0);
-
+        AllCursorAdapter adapter = new AllCursorAdapter(ShowAllActivity.this, cursor, 0);
         lvItems.setAdapter(adapter);
 
-
-
+    }
+    public void refresh(){
+        finish();
+        startActivity(getIntent());
     }
 }
+
+

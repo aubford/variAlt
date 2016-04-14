@@ -15,13 +15,13 @@ public class dbHandler extends SQLiteOpenHelper {
 
     //We need to pass database information along to superclass
     public dbHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, "flightdb", factory, 3);
+        super(context, "flightdb", factory, 4);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         String query = "CREATE TABLE " + "flights" + "(" +
-                "id" + " INTEGER PRIMARY KEY AUTOINCREMENT, " + "name" + " TEXT," +
+                "_id" + " INTEGER PRIMARY KEY AUTOINCREMENT, " + "name" + " TEXT," +
                 "date" + " TEXT, " + "flight_time" + " INTEGER," + "ascending_time" + " REAL," + "altitude_entries" + " TEXT" +
                 ");";
 
@@ -56,7 +56,7 @@ public class dbHandler extends SQLiteOpenHelper {
     //Delete a product from the database
     public void deleteFlight(int id){
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM " + "flights" + " WHERE " + "id" + id);
+        db.execSQL("DELETE FROM " + "flights" + " WHERE " + "_id=" + id);
     }
 
     public Cursor getDatabase(){
@@ -65,7 +65,6 @@ public class dbHandler extends SQLiteOpenHelper {
 
         Cursor cursory = db.rawQuery(query, null);
 
-        db.close();
         return cursory;
     }
 

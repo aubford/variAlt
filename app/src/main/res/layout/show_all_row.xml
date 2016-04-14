@@ -3,12 +3,20 @@
     android:layout_width="match_parent" android:layout_height="match_parent">
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:text="Delete"
         android:id="@+id/all_delete"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:text="View"
+        android:id="@+id/all_select"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/all_delete" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -28,10 +36,10 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="10-23-15"
         android:id="@+id/all_date"
-        android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/all_delete"
-        android:layout_alignBottom="@+id/all_delete"
         android:linksClickable="false"
         android:gravity="center_vertical|center_horizontal"
-        android:layout_marginRight="5dp" />
+        android:layout_marginRight="5dp"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/all_select"
+        android:layout_alignBottom="@+id/all_name" />
 </RelativeLayout>

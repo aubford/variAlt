@@ -70,12 +70,16 @@ public class FlightResultActivity extends Activity {
         mAscendingTime.setText(String.valueOf(ascendingTime));
 
         float startingAlt = altitudeEntries.get(0).altitude;
-        mStartingAlt.setText(String.valueOf(startingAlt) + " m");
+        String startingAltFormat = String.format("%.2f", startingAlt) + " m";
+        mStartingAlt.setText(String.valueOf(startingAltFormat));
 
         float endingAlt = altitudeEntries.get(altitudeEntries.size()-1).altitude;
-        mEndingAlt.setText(String.valueOf(endingAlt) + " m");
+        String endAltFormatted = String.format("%.2f", endingAlt) + " m";
+        mEndingAlt.setText(endAltFormatted);
 
-        mAltDif.setText(String.valueOf(startingAlt-endingAlt) + " m");
+
+        String differenceFormat = String.format("%.2f", (startingAlt-endingAlt)) + " m";
+        mAltDif.setText(differenceFormat);
 
         Location locationA = new Location("point A");
         locationA.setLatitude(altitudeEntries.get(0).getLattitude());
@@ -119,7 +123,7 @@ public class FlightResultActivity extends Activity {
                     public void onClick(DialogInterface dialog, int which) {
                         String name = input.getText().toString();
 
-                        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yy");
                         Date date = new Date();
                         String formattedDate = dateFormat.format(date);
 
